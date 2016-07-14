@@ -1,0 +1,82 @@
+imports:
+    - { resource: "../BaseConfig/config.yml" }
+
+workflow:
+    workflows:
+        simple:
+            marking_store:
+                type: property_accessor
+                arguments:
+                    - status
+            supports:
+                - Gtt\Bundle\WorkflowExtensionsBundle\Tests\Functional\Configuration\EventTriggerWithGuardsCase\Fixtures\TargetWorkflowSubject
+            places:
+                - inactive
+                - processing
+                - vip
+                - active
+                - regular
+                - closed
+            transitions:
+                processing:
+                    from:
+                        - inactive
+                    to:
+                        - processing
+                activating:
+                    from:
+                        - processing
+                    to:
+                        - active
+                        - regular
+                viping:
+                    from:
+                        - regular
+                    to:
+                        - vip
+                closing:
+                    from:
+                        - active
+                        - regular
+                    to:
+                        - closed
+                closing_vip:
+                    from:
+                        - active
+                        - vip
+                    to:
+                        - closed
+                crazy_closing:
+                    from:
+                        - active
+                    to:
+                        - closed
+
+workflow_extensions:
+    workflows:
+        simple:
+            triggers:
+                event:
+                    processing.event:
+                        apply:
+                            - processing
+                            - activating
+                            - closing
+                        subject_retrieving_expression: 'event.getSubject()'
+                    viping.event:
+                        apply:
+                            - viping
+                            - closing_vip
+                        subject_retrieving_expression: 'event.getSubject()'
+                    crazy_closing.event:
+                        apply:
+                            - crazy_closing
+                        subject_retrieving_expression: 'event.getSubject()'
+            guard:
+                # prevent closing vips
+                expression: 'event.getTransition().getName() == "closing_vip"'
+                transitions:
+                    # prevent direct transiticn of active=>closed when marking contains other places
+                    crazy_closing: 'event.getMarking().getPlaces() != {"active": 1}'
+    subject_manipulator:
+        Gtt\Bundle\WorkflowExtensionsBundle\Tests\Functional\Configuration\EventTriggerWithGuardsCase\Fixtures\TargetWorkflowSubject: ~

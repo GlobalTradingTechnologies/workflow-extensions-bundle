@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <service id="gtt.workflow.trigger.event.listener"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\TransitionTrigger\Event\TransitionTriggerListener">
+            <argument type="service" id="gtt.workflow.trigger.expression_language" />
+            <argument type="service" id="gtt.workflow.transition_applier" />
+            <argument type="service" id="gtt.workflow.subject_manipulator" />
+            <argument type="service" id="logger"/>
+            <tag name="monolog.logger" channel="workflow"/>
+        </service>
+
+        <service id="gtt.workflow.trigger.command" class="Gtt\Bundle\WorkflowExtensionsBundle\Command\TriggerTransitionCommand">
+            <argument type="service" id="gtt.workflow.subject_manipulator" />
+            <argument type="service" id="gtt.workflow.transition_applier" />
+            <tag name="console.command" />
+        </service>
+
+        <service id="gtt.workflow.trigger.expression_language"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage\ContainerAwareExpressionLanguage"
+                 public="false">
+            <argument type="service" id="service_container" />
+        </service>
+
+    </services>
+</container>

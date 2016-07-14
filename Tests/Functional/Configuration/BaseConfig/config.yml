@@ -1,0 +1,4 @@
+framework:
+    secret: test
+    router: { resource: "routing.yml" }
+    test: ~

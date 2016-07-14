@@ -1,0 +1,84 @@
+imports:
+    - { resource: "../BaseConfig/config.yml" }
+
+services:
+    gtt.workflow.marking_store.property_accessor:
+        class: Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore
+        arguments:
+            - status
+    gtt.workflow.marking_store.orm.marking.store:
+        class: Gtt\Bundle\WorkflowExtensionsBundle\MarkingStore\OrmPersistentMarkingStore
+        arguments: ["@gtt.workflow.marking_store.property_accessor", "@doctrine"]
+
+doctrine:
+    dbal:
+        default_connection:   default
+        connections:
+            default:
+                driver:   pdo_sqlite
+                path:     %kernel.cache_dir%/database.sqlite
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        naming_strategy: doctrine.orm.naming_strategy.underscore
+        auto_mapping: true
+
+workflow:
+    workflows:
+        simple:
+            marking_store:
+                service: gtt.workflow.marking_store.orm.marking.store
+            supports:
+                - Gtt\Bundle\WorkflowExtensionsBundle\Tests\Functional\Configuration\ScheduleCase\Fixtures\ClientBundle\Entity\Client
+            places:
+                - inactive
+                - active
+                - sleeping
+                - closed
+            transitions:
+                activating:
+                    from:
+                        - inactive
+                    to:
+                        - active
+                sleeping:
+                    from:
+                        - active
+                    to:
+                        - sleeping
+                closing:
+                    from:
+                        - sleeping
+                    to:
+                        - closed
+
+workflow_extensions:
+    workflows:
+        simple:
+            triggers:
+                event:
+                    activating.event:
+                        apply:
+                            - activating
+                        subject_retrieving_expression: 'event.getSubject()'
+                    # during activation schedule sleeping
+                    workflow.simple.transition.activating:
+                        schedule:
+                            sleeping:
+                                offset: PT1S
+                        subject_retrieving_expression: 'event.getSubject()'
+                    # during sleeping schedule closing
+                    workflow.simple.transition.sleeping:
+                        schedule:
+                            closing:
+                                offset: PT1S
+                        subject_retrieving_expression: 'event.getSubject()'
+                    # prolongate closing for 1 sec
+                    prolong.event:
+                        schedule:
+                            closing:
+                                offset: PT1S
+                        subject_retrieving_expression: 'event.getSubject()'
+    scheduler: ~
+    subject_manipulator:
+        Gtt\Bundle\WorkflowExtensionsBundle\Tests\Functional\Configuration\ScheduleCase\Fixtures\ClientBundle\Entity\Client:
+            subject_from_domain: "container.get('doctrine').getManagerForClass(subjectClass).find(subjectClass, subjectId)"
