@@ -163,7 +163,15 @@ class ScheduleCaseTest extends TestCase
     protected function runScheduler($runtime = 1)
     {
         $schedulerCommand = new RunCommand();
-        $this->runConsoleCommand($schedulerCommand, ['--max-runtime' => $runtime]);
+        $this->runConsoleCommand(
+            $schedulerCommand,
+            [
+                '--max-runtime' => $runtime,
+                // set worker name explicitly in order to avoid errors caused by 50 characters name restrictions on
+                // testing envs like travis
+                '--worker-name' => uniqid("worker_")
+            ]
+        );
     }
 
     private function runConsoleCommand(Command $command, array $params = [])
