@@ -98,6 +98,7 @@ class ExpressionGuard
         $loggerContext = $this->getLoggerContext($workflowName, get_class($subject), $this->subjectManipulator->getSubjectId($subject));
 
         $expressionFailure = false;
+        $errorMessage      = null;
 
         try {
             $expressionResult = $this->language->evaluate($expression, ['event' => $event]);
@@ -117,13 +118,13 @@ class ExpressionGuard
                 $e->getMessage()
             );
             $expressionFailure = true;
-        } finally {
-            if ($expressionFailure) {
-                $this->logger->error($errorMessage, $loggerContext);
+        }
 
-                // simply skipping processing here without blocking transition
-                return;
-            }
+        if ($expressionFailure) {
+            $this->logger->error($errorMessage, $loggerContext);
+
+            // simply skipping processing here without blocking transition
+            return;
         }
 
         if (!is_bool($expressionResult)) {
