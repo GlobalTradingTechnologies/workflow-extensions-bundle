@@ -22,10 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Command is a part of Schedule subsystem.
  * Used to apply scheduled transitions as async jobs executed by scheduler.
  *
- * WARNING! The command can only be used when scheduler system activated
- * (ie there is at least one scheduled transition in config).
- * Also this command does not output anything even in case of failure and reports execution results
- * into log files instead.
+ * This command does not output anything even in case of failure and reports execution results
+ * into log files instead since it is normally used only by scheduler.
  */
 class TriggerTransitionCommand extends Command
 {
@@ -94,10 +92,8 @@ class TriggerTransitionCommand extends Command
             ->setDescription('Transition trigger command')
             ->setHelp(<<<EOT
 This <info>%command.name%</info> allows trigger transition for specified subject and workflow.
-Warning! <info>%command.name%</info> can only be used when scheduler system activated
-(ie there is at least one scheduled transition in config). 
-Also this command does not output anything even in case of failure and reports execution results 
-into log files instead.
+This command does not output anything even in case of failure and reports execution results 
+into log files instead since it is normally used only by scheduler.
 EOT
             );
     }
