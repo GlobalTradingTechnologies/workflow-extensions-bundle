@@ -1,2 +1,2 @@
-coverage_clover: clover.xml
+coverage_clover: build/logs/clover.xml
 json_path: coveralls-upload.json
