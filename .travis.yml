@@ -9,9 +9,14 @@ php:
 
 before_script:
   - composer self-update
-  - composer install
+  - composer require satooshi/php-coveralls -n
 
-script: ./vendor/bin/phpunit
+script:
+ - mkdir -p build/logs
+ - phpunit --coverage-clover build/logs/clover.xml
+
+after_script:
+ - php vendor/bin/coveralls -v
 
 git:
   depth: 5
