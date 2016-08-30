@@ -4,6 +4,9 @@ WorkflowExtensionsBundle
 [![Build Status](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle.svg?branch=master)](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle)
 [![Coverage Status](https://coveralls.io/repos/github/GlobalTradingTechnologies/workflow-extensions-bundle/badge.svg?branch=master)](https://coveralls.io/github/GlobalTradingTechnologies/workflow-extensions-bundle?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/version)](https://packagist.org/packages/gtt/workflow-extensions-bundle)
+[![Latest Unstable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/v/unstable)](//packagist.org/packages/gtt/workflow-extensions-bundle)
+[![License](https://poser.pugx.org/gtt/workflow-extensions-bundle/license)](https://packagist.org/packages/gtt/workflow-extensions-bundle)
 
 Original Symfony 3 [Workflow component](https://github.com/symfony/workflow) and the [part of Symfony's FrameworkBundle](https://github.com/symfony/symfony/blob/master/src/Symfony/Bundle/FrameworkBundle/DependencyInjection/FrameworkExtension.php#L359-L398) that 
 integrates it in Symfony's ecosystem state explicit declaring all the things as a main concept. 
@@ -14,16 +17,21 @@ allow transition inside.
 But sometimes workflow processes are complex and the code handles transition management grows quickly. 
 
 WorkflowExtensionsBundle provides extensions and additional features to original Symfony 3 Workflow component that can help you to automate some actions you must do manually when you deal with workflow component out of the box:
-1. Event-based transitions triggering.
-2. Event-based transitions scheduling.
-3. Configurable transition blocking using [ExpressionLanguage](https://github.com/symfony/expression-language) expressions.
+
+1. [Event-based transitions triggering](#event-based-transitions-processing)
+
+2. [Event-based transitions scheduling](#event-based-transitions-triggering)
+
+3. [Configurable transition blocking](#event-based-transitions-scheduling)
 
 Requirements
 ============
 
 Since Symfony's Workflow component requires PHP 5.5.9+ WorkflowExtensionsBundle supports PHP 5.5.9 and newer.
+
 Workflow component is integrated in Symfony 3 ecosystem starting from 3.2 version. In order to use it in applications based on Symfony 3.1 and lower you can use [fduch/workflow-bundle](https://github.com/fduch/workflow-bundle).
 Until Symfony 3.2 will be released fduch/workflow-bundle is required by WorkflowExtensionsBundle to support all the stable Symfony stacks. After that this dependency will be optional (and will be moved to `suggest` section) for old versions support.
+
 Besides [symfony/framework-bundle](https://github.com/symfony/framework-bundle) and [symfony/expression-language](https://github.com/symfony/expression-language) packages are required.
  
 
@@ -62,6 +70,7 @@ workflow_extensions:
 ## Logging
 Since all the things WorkflowExtensionsBundle does are basically automated (and even asynchronous) it is reasonable 
 to log important aspects in details. All the WorkflowExtensionsBundle subsystems log (when it is possible) workflow name, subject class and subject id during execution.
+
 There is one non-trivial thing here: how to retrieve subject id from subject. More often subject id can be fetched by invoking `getId()` method, - in this case you have nothing to do.
 Otherwise (when your subject class has no `getId()` method or there is the other one should be used to get subject's identifier) you need to specify expression to get subject identifier. This expression will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language) component with `subject` variable that represents subject object:
 ```yml
@@ -97,7 +106,7 @@ For each workflow then you define target event and configure processing details 
 
 ### Event-based transitions triggering
 WorkflowExtensionsBundle makes possible to trigger workflow transitions when particular event is fired.
-For example if you want to trigger transition `to_processing` when workflow subject (My/Bundle/Entity/Order instance) is created (order_created.event is fired) the WorkflowExtensionsBundle's config can look like this:  
+For example if you want to trigger transition `to_processing` when workflow subject (My\Bundle\Entity\Order instance) is created (order_created.event is fired) the WorkflowExtensionsBundle's config can look like this:  
 ```yml
 workflow_extensions:
     simple:
@@ -111,7 +120,7 @@ workflow_extensions:
         My\Bundle\Entity\Order: ~
 ```
 In example above `subject_retrieving_expression` section contains expression (it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language)) used to retrieve workflow subject.
-Since expression language that evaluates these expressions has container variable (represents DI Container) enabled you can construct more complicated things for example like this here: "container.get('doctrine').getEntityMangerForClass('My\\\\\\\Bundle\\\\\\\Entity\\\\\\\Order').find('My\\\\\\\Bundle\\\\\\\Entity\\\\\\\Order', event.getId())". 
+Since expression language that evaluates these expressions has container variable (represents DI Container) enabled you can construct more complicated things for example like this here: ```"container.get('doctrine').getEntityMangerForClass('My\\\\Bundle\\\\Entity\\\\Order').find('My\\\\Bundle\\\\Entity\\\\Order', event.getId())"``` (Lot of backslashes is set due to specialty of [expression language syntax](http://symfony.com/doc/current/components/expression_language/syntax.html)). 
 
 You can also specify more then one transition to be tried to perform when event is fired. In this case (by default) the first applicable transition would be applied.
 
@@ -137,9 +146,12 @@ workflow_extensions:
             subject_from_domain: "container.get('doctrine').getManagerForClass(subjectClass).find(subjectClass, subjectId)"
 ```    
 Configuration above is similar to previous one with three differences.
+
 The first difference is `offset` key that defines time interval (according to [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601#Durations)) started from the moment when corresponding trigger event occurred and after that scheduled transition should be applied.
+
 The second difference is that you need to configure `scheduler` section to activate scheduler engine. Also it can be used to set particular entity manager to persist scheduler jobs.
-The third difference is that you must configure under `subject_manipulator`'s `subject_from_domain` key expression ((it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language))) that will be used to retrieve workflow subject when scheduled transition will be tried to be applied.
+
+The third difference is that you must configure under `subject_manipulator`'s `subject_from_domain` key expression (it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language)) that will be used to retrieve workflow subject when scheduled transition will be tried to be applied.
 The subjectClass (for example My\Bundle\Entity\Order) and subjectId (i.e. identifier you can use to fetch the object) are the expression variables here. Moreover you can use DI container here again since it also registered as expression variable. 
 
 Another feature here is that if you have frequent repeatable event that schedules transition then for the first time when event is fired transition would be simply scheduled and next event occurrences will just reset scheduler countdown to restart it from current moment.
