@@ -85,20 +85,21 @@ One of the most important use cases of WorkflowExtensionsBundle is to execute so
 In order to subscribe workflow processing to such an event you should start with config like this:
 ```yml
 workflow_extensions:
-    simple:
-        triggers:
-            event:
-                some.event:
-                    ...
-                another.event:
-                    ... 
-    complex:
-        triggers:
-            event:
-                some.event:
-                    ...
-                third.event:
-                    ...
+    workflows:
+        simple:
+            triggers:
+                event:
+                    some.event:
+                        ...
+                    another.event:
+                        ... 
+        complex:
+            triggers:
+                event:
+                    some.event:
+                        ...
+                    third.event:
+                        ...
     ...                
 ```
 This config firstly specifies target workflow name (`simple`) that should be equal to one of defined workflows in symfony/framework-bundle or fduch/workflow-bundle config.
@@ -109,13 +110,14 @@ WorkflowExtensionsBundle makes possible to trigger workflow transitions when par
 For example if you want to trigger transition `to_processing` when workflow subject (My\Bundle\Entity\Order instance) is created (order_created.event is fired) the WorkflowExtensionsBundle's config can look like this:  
 ```yml
 workflow_extensions:
-    simple:
-        triggers:
-            event:
-                order_created.event:
-                    apply:
-                        - to_processing
-                    subject_retrieving_expression: 'event.getOrder()'
+    workflows:
+        simple:
+            triggers:
+                event:
+                    order_created.event:
+                        apply:
+                            - to_processing
+                        subject_retrieving_expression: 'event.getOrder()'
     subject_manipulator:
         My\Bundle\Entity\Order: ~
 ```
@@ -132,14 +134,15 @@ Such goal can be achieved using config like this:
  
 ```yml
 workflow_extensions:
-    simple:
-        triggers:
-            event:
-                order_created.event:
-                    schedule:
-                        closing:
-                            offset: P30D
-                    subject_retrieving_expression: 'event.getOrder()'
+    workflows:
+        simple:
+            triggers:
+                event:
+                    order_created.event:
+                        schedule:
+                            closing:
+                                offset: P30D
+                        subject_retrieving_expression: 'event.getOrder()'
     scheduler: ~                
     subject_manipulator:
         My\Bundle\Entity\Order:
