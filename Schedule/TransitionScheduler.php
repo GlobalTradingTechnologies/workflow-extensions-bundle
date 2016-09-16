@@ -82,11 +82,11 @@ class TransitionScheduler
         foreach ($scheduledTransitions as $scheduledTransition) {
             $transitionName = $scheduledTransition->getTransitionName();
             try {
-                $scheduledJob = $scheduledJobRepository->findScheduledJobForWorkflowTransitionAndSubject(
-                    $scheduledTransition->getTransitionName(), $workflowName, $subjectClass, $subjectId
+                $scheduledJob = $scheduledJobRepository->findScheduledJobToReschedule(
+                    $workflowName, $scheduledTransition->getTransitionName(), $subjectClass, $subjectId
                 );
                 if ($scheduledJob) {
-                    // the job was already scheduled. Now we need to reschedule it
+                    // the job was already scheduled but not executed. Now we need to reschedule it
                     $this->rescheduleTransitionTriggerJob($scheduledTransition, $scheduledJob, $loggerContext);
                 } else {
                     // creating new jms job to trigger transition

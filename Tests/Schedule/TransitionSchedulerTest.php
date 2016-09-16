@@ -44,15 +44,15 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
         /** @var $repository \PHPUnit_Framework_MockObject_MockObject */
         $repository
             ->expects(self::at(0))
-            ->method('findScheduledJobForWorkflowTransitionAndSubject')
-            ->with($transition1->getTransitionName(), $workflowName, $subjectClass, $subjectId)
+            ->method('findScheduledJobToReschedule')
+            ->with($workflowName, $transition1->getTransitionName(), $subjectClass, $subjectId)
             ->willThrowException(new \Exception())
         ;
 
         $repository
             ->expects(self::at(1))
-            ->method('findScheduledJobForWorkflowTransitionAndSubject')
-            ->with($transition2->getTransitionName(), $workflowName, $subjectClass, $subjectId)
+            ->method('findScheduledJobToReschedule')
+            ->with($workflowName, $transition2->getTransitionName(), $subjectClass, $subjectId)
             ->willReturn(null)
         ;
         /** @var $em \PHPUnit_Framework_MockObject_MockObject|ObjectManager */
@@ -119,8 +119,8 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
 
         $repository
             ->expects(self::once())
-            ->method('findScheduledJobForWorkflowTransitionAndSubject')
-            ->with($transition->getTransitionName(), $workflowName, $subjectClass, $subjectId)
+            ->method('findScheduledJobToReschedule')
+            ->with($workflowName, $transition->getTransitionName(), $subjectClass, $subjectId)
             ->willReturn($scheduledJob)
         ;
 
