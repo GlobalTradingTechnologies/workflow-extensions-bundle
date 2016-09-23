@@ -22,39 +22,33 @@ use JMS\JobQueueBundle\Entity\Job;
 class ScheduledJobRepository extends EntityRepository
 {
     /**
-     * Finds ScheduledJob by subject identity and workflow transition that can be rescheduled (is able to be started now)
+     * Finds ScheduledJob by original Job can be scheduled earlier
      *
-     * @param string $workflowName   workflow name
-     * @param string $transitionName transition name
-     * @param string $subjectClass   subject class
-     * @param string $subjectId      subject id
+     * @param $originalJob $originalJob original job
      *
      * @return ScheduledJob|null
      */
-    public function findScheduledJobToReschedule($workflowName, $transitionName, $subjectClass, $subjectId)
+    public function findScheduledJobToReschedule(Job $originalJob)
     {
         // fetching scheduled job that was not started before - it can be rescheduled
         $queryString = <<<'QUERY'
             SELECT sj FROM WorkflowExtensionsBundle:ScheduledJob sj
             JOIN sj.job j
             WHERE
-                sj.workflow = :workflow AND
-                sj.transition = :transition AND
-                sj.subjectClass = :subjectClass AND
-                sj.subjectId = :subjectId AND
-                j.state in (:stateNew, :statePending)
+                j.state in (:stateNew, :statePending) AND
+                j.command = :command AND
+                j.args = :args AND
+                sj.reschedulable = 1
 QUERY;
 
         /** @var ScheduledJob[] $scheduledJobsToReschedule */
         $scheduledJobsToReschedule = $this->_em
             ->createQuery($queryString)
             ->setParameters([
-                'workflow'     => $workflowName,
-                'transition'   => $transitionName,
-                'subjectClass' => $subjectClass,
-                'subjectId'    => $subjectId,
                 'stateNew'     => Job::STATE_NEW,
-                'statePending' => Job::STATE_PENDING
+                'statePending' => Job::STATE_PENDING,
+                'command'      => $originalJob->getCommand(),
+                'args'         => json_encode($originalJob->getArgs())
             ])
             ->getResult()
         ;
@@ -73,13 +67,7 @@ QUERY;
                 $duplicateReschedulableJobsIds[] = $scheduledJobToReschedule->getJob()->getId();
             }
 
-            throw new NonUniqueReschedulabeJobFoundException(
-                $workflowName,
-                $transitionName,
-                $subjectClass,
-                $subjectId,
-                $duplicateReschedulableJobsIds
-            );
+            throw new NonUniqueReschedulabeJobFoundException($originalJob, $duplicateReschedulableJobsIds);
         }
 
         return reset($scheduledJobsToReschedule);

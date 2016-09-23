@@ -37,7 +37,6 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
         $transition1 = new ScheduledTransition('t1', 'PT1S');
         $transition2 = new ScheduledTransition('t2', 'PT2S');
 
-
         $logger = $this->getMock(LoggerInterface::class);
         $logger->expects(self::exactly(2))->method('error');
 
@@ -45,14 +44,12 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
         $repository
             ->expects(self::at(0))
             ->method('findScheduledJobToReschedule')
-            ->with($workflowName, $transition1->getTransitionName(), $subjectClass, $subjectId)
             ->willThrowException(new \Exception())
         ;
 
         $repository
             ->expects(self::at(1))
             ->method('findScheduledJobToReschedule')
-            ->with($workflowName, $transition2->getTransitionName(), $subjectClass, $subjectId)
             ->willReturn(null)
         ;
         /** @var $em \PHPUnit_Framework_MockObject_MockObject|ObjectManager */
@@ -89,12 +86,9 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
                 }
             )],
             [self::callback(
-                function (ScheduledJob $job) use ($subjectClass, $subjectId, $transition, $workflowName) {
+                function (ScheduledJob $job) {
                     return
-                        $job->getSubjectClass() == $subjectClass &&
-                        $job->getSubjectId() == $subjectId &&
-                        $job->getTransition() == $transition->getTransitionName() &&
-                        $job->getWorkflow() == $workflowName;
+                        $job->getReschedulable() == true && $job->getJob() instanceof Job;
                 }
             )]
         );
@@ -112,15 +106,14 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
         Carbon::setTestNow(Carbon::now());
         $now = Carbon::now();
 
-        $transitionTriggerJob = new Job("command");
-        $newExecuteJobAfter = $now->add($transition->getOffset());
+        $transitionTriggerJob = new Job('command');
+        $newExecuteJobAfter   = $now->add($transition->getOffset());
 
-        $scheduledJob = new ScheduledJob($workflowName, $transition->getTransitionName(), $subjectClass, $subjectId, $transitionTriggerJob);
+        $scheduledJob = new ScheduledJob($transitionTriggerJob);
 
         $repository
             ->expects(self::once())
             ->method('findScheduledJobToReschedule')
-            ->with($workflowName, $transition->getTransitionName(), $subjectClass, $subjectId)
             ->willReturn($scheduledJob)
         ;
 

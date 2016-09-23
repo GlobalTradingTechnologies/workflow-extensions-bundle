@@ -22,9 +22,7 @@ use JMS\JobQueueBundle\Entity\Job;
  *
  * @ORM\Entity(repositoryClass = "Gtt\Bundle\WorkflowExtensionsBundle\Entity\Repository\ScheduledJobRepository")
  *
- * @ORM\Table(name = "gtt_workflow_scheduled_job", indexes = {
- *     @ORM\Index("jms_related_search_index", columns = {"workflow", "transition", "subject_class", "subject_id"}),
- * })
+ * @ORM\Table(name = "gtt_workflow_scheduled_job")
  *
  * (c) fduch <alex.medwedew@gmail.com>
  */
@@ -42,40 +40,13 @@ class ScheduledJob
     private $id;
 
     /**
-     * Workflow name which transition should be scheduled
+     * Reschedulable or not
      *
-     * @var string
+     * @var boolean
      *
-     * @ORM\Column(type="string", name="workflow", length=255)
+     * @ORM\Column(type = "boolean")
      */
-    private $workflow;
-
-    /**
-     * Transition name to be scheduled
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", name="transition", length=255)
-     */
-    private $transition;
-
-    /**
-     * Class of the subject to be transited
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", name="subject_class", length=255)
-     */
-    private $subjectClass;
-
-    /**
-     * Identifier of the subject to be transited
-     *
-     * @var int
-     *
-     * @ORM\Column(type = "integer", name="subject_id", options = {"unsigned": true})
-     */
-    private $subjectId;
+    private $reschedulable;
 
     /**
      * Related jms Job to be executed later
@@ -83,26 +54,20 @@ class ScheduledJob
      * @var Job
      *
      * @ORM\OneToOne(targetEntity="JMS\JobQueueBundle\Entity\Job")
-     * @ORM\JoinColumn(name="jms_job_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="jms_job_id", referencedColumnName="id", nullable=false)
      */
     private $job;
 
     /**
      * ScheduledJob constructor.
      *
-     * @param string $workflow             workflow name
-     * @param string $transition           transition
-     * @param string $subjectClass         subject class
-     * @param int    $subjectId            subject id
-     * @param Job    $transitionTriggerJob transition trigger job
+     * @param Job     $transitionTriggerJob transition trigger job
+     * @param boolean $reschedulable        reschedulable or not
      */
-    public function __construct($workflow, $transition, $subjectClass, $subjectId, Job $transitionTriggerJob)
+    public function __construct(Job $transitionTriggerJob, $reschedulable = true)
     {
-        $this->setWorkflow($workflow);
-        $this->setTransition($transition);
-        $this->setSubjectClass($subjectClass);
-        $this->setSubjectId($subjectId);
-        $this->job = $transitionTriggerJob;
+        $this->reschedulable = $reschedulable;
+        $this->job           = $transitionTriggerJob;
     }
 
 
@@ -117,123 +82,19 @@ class ScheduledJob
     }
 
     /**
-     * Returns workflow
-     *
-     * @return string
+     * @return boolean
      */
-    public function getWorkflow()
+    public function getReschedulable()
     {
-        return $this->workflow;
+        return $this->reschedulable;
     }
 
     /**
-     * Sets workflow
-     *
-     * @param string $workflow workflow
-     *
-     * @return ScheduledJob
-     *
-     * @throws InvalidArgumentException
+     * @param boolean $reschedulable
      */
-    public function setWorkflow($workflow)
+    public function setReschedulable($reschedulable)
     {
-        if (empty($workflow)) {
-            throw new InvalidArgumentException('Workflow name must not be empty');
-        }
-
-        $this->workflow = $workflow;
-
-        return $this;
-    }
-
-    /**
-     * Returns transition
-     *
-     * @return string
-     */
-    public function getTransition()
-    {
-        return $this->transition;
-    }
-
-    /**
-     * Sets transition
-     *
-     * @param string $transition transition
-     *
-     * @return ScheduledJob
-     *
-     * @throws InvalidArgumentException
-     */
-    public function setTransition($transition)
-    {
-        if (empty($transition)) {
-            throw new InvalidArgumentException('Transition name must not be empty');
-        }
-
-        $this->transition = $transition;
-
-        return $this;
-    }
-
-    /**
-     * Returns subject class
-     *
-     * @return string
-     */
-    public function getSubjectClass()
-    {
-        return $this->subjectClass;
-    }
-
-    /**
-     * Sets subject class
-     *
-     * @param string $subjectClass subject class
-     *
-     * @return ScheduledJob
-     *
-     * @throws InvalidArgumentException
-     */
-    public function setSubjectClass($subjectClass)
-    {
-        if (empty($subjectClass)) {
-            throw new InvalidArgumentException('Subject class must not be empty');
-        }
-
-        $this->subjectClass = $subjectClass;
-
-        return $this;
-    }
-
-    /**
-     * Returns subject id
-     *
-     * @return int
-     */
-    public function getSubjectId()
-    {
-        return $this->subjectId;
-    }
-
-    /**
-     * Sets subject id
-     *
-     * @param int $subjectId subject id
-     *
-     * @return ScheduledJob
-     *
-     * @throws InvalidArgumentException
-     */
-    public function setSubjectId($subjectId)
-    {
-        if ((int) $subjectId <= 0) {
-            throw new InvalidArgumentException('Subject id must be integer positive value');
-        }
-
-        $this->subjectId = (int) $subjectId;
-
-        return $this;
+        $this->reschedulable = $reschedulable;
     }
 
     /**

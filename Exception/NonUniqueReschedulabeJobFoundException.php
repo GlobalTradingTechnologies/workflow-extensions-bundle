@@ -22,25 +22,19 @@ class NonUniqueReschedulabeJobFoundException extends \RuntimeException implement
     /**
      * NonUniqueReschedulabeJobFoundException constructor
      *
-     * @param string         $workflowName   workflow name
-     * @param string         $transitionName transition name
-     * @param string         $subjectClass   subject class
-     * @param string         $subjectId      subject id
-     * @param array          $jobIds         list of ids of reschedulable jms jobs
-     * @param int            $code           exception code
-     * @param Exception|null $previous       previous exception
+     * @param Job            $originalJob duplicated job
+     * @param array          $jobIds      list of ids of reschedulable jms jobs
+     * @param int            $code        exception code
+     * @param Exception|null $previous    previous exception
      */
-    public function __construct($workflowName, $transitionName, $subjectClass, $subjectId, array $jobIds, $code = 0, Exception $previous = null)
+    public function __construct(Job $originalJob, array $jobIds, $code = 0, Exception $previous = null)
     {
         $message = sprintf(
-            "There are several scheduled '%s' instances (id's: '%s') available for rescheduling found for transition '%s' (workflow '%s') and ".
-            "subject class '%s' and subject id '%s'",
+            "There are several scheduled '%s' jobs (id's: '%s') available for rescheduling found for command '%s' with args '%s'",
             Job::class,
             implode(", ", $jobIds),
-            $transitionName,
-            $workflowName,
-            $subjectClass,
-            $subjectId
+            $originalJob->getCommand(),
+            json_encode($originalJob->getArgs())
         );
         parent::__construct($message, $code, $previous);
     }

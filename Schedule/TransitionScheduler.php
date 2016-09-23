@@ -81,16 +81,24 @@ class TransitionScheduler
 
         foreach ($scheduledTransitions as $scheduledTransition) {
             $transitionName = $scheduledTransition->getTransitionName();
+
+            $transitionTriggerJobToSchedule = new Job('workflow:transition:trigger',
+                [
+                    '--transition='   . $transitionName,
+                    '--workflow='     . $workflowName,
+                    '--subjectClass=' . $subjectClass,
+                    '--subjectId='    . $subjectId,
+                ]
+            );
+
             try {
-                $scheduledJob = $scheduledJobRepository->findScheduledJobToReschedule(
-                    $workflowName, $scheduledTransition->getTransitionName(), $subjectClass, $subjectId
-                );
-                if ($scheduledJob) {
+                $scheduledJobToReschedule = $scheduledJobRepository->findScheduledJobToReschedule($transitionTriggerJobToSchedule);
+                if ($scheduledJobToReschedule) {
                     // the job was already scheduled but not executed. Now we need to reschedule it
-                    $this->rescheduleTransitionTriggerJob($scheduledTransition, $scheduledJob, $loggerContext);
+                    $this->rescheduleTransitionTriggerJob($scheduledTransition, $scheduledJobToReschedule, $loggerContext);
                 } else {
                     // creating new jms job to trigger transition
-                    $this->scheduleTransitionTriggerJob($scheduledTransition, $workflowName, $subjectClass, $subjectId, $loggerContext);
+                    $this->scheduleTransitionTriggerJob($scheduledTransition, $transitionTriggerJobToSchedule, $loggerContext);
                 }
             } catch (\Exception $e) {
                 $this->logger->error(
@@ -131,35 +139,20 @@ class TransitionScheduler
     /**
      * Schedules transition
      *
-     * @param ScheduledTransition $scheduledTransition scheduled transition
-     * @param string              $workflowName        workflow name
-     * @param string              $subjectClass        subject class
-     * @param int                 $subjectId           subject id
-     * @param array               $loggerContext       logger context
+     * @param ScheduledTransition $scheduledTransition            scheduled transition
+     * @param Job                 $transitionTriggerJobToSchedule Job to be scheduled
+     * @param array               $loggerContext                  logger context
      */
-    private function scheduleTransitionTriggerJob($scheduledTransition, $workflowName, $subjectClass, $subjectId, $loggerContext)
+    private function scheduleTransitionTriggerJob(ScheduledTransition $scheduledTransition, Job $transitionTriggerJobToSchedule, $loggerContext)
     {
-        $transitionTriggerJob = new Job('workflow:transition:trigger',
-            [
-                '--transition='   . $scheduledTransition->getTransitionName(),
-                '--workflow='     . $workflowName,
-                '--subjectClass=' . $subjectClass,
-                '--subjectId='    . $subjectId,
-            ]
-        );
-
         $executionDate = $this->getTransitionTriggerExecutionDate($scheduledTransition);
-        $transitionTriggerJob->setExecuteAfter($executionDate);
+        $transitionTriggerJobToSchedule->setExecuteAfter($executionDate);
 
         $scheduledJob = new ScheduledJob(
-            $workflowName,
-            $scheduledTransition->getTransitionName(),
-            $subjectClass,
-            $subjectId,
-            $transitionTriggerJob
+            $transitionTriggerJobToSchedule
         );
 
-        $this->em->persist($transitionTriggerJob);
+        $this->em->persist($transitionTriggerJobToSchedule);
         $this->em->persist($scheduledJob);
 
         $this->em->flush();
