@@ -12,7 +12,6 @@
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Gtt\Bundle\WorkflowExtensionsBundle\Exception\InvalidArgumentException;
 use JMS\JobQueueBundle\Entity\Job;
 
 /**
@@ -44,9 +43,9 @@ class ScheduledJob
      *
      * @var boolean
      *
-     * @ORM\Column(type = "boolean")
+     * @ORM\Column(type = "boolean", columnDefinition="COMMENT 'Defines whether related job can be rescheduled or not'")
      */
-    private $reschedulable;
+    private $reschedulable = true;
 
     /**
      * Related jms Job to be executed later
@@ -82,17 +81,21 @@ class ScheduledJob
     }
 
     /**
+     * Return true if scheduled job can be rescheduled
+     *
      * @return boolean
      */
-    public function getReschedulable()
+    public function isReschedulable()
     {
         return $this->reschedulable;
     }
 
     /**
+     * Sets reschedulable flag
+     *
      * @param boolean $reschedulable
      */
-    public function setReschedulable($reschedulable)
+    public function setReschedulable($reschedulable = true)
     {
         $this->reschedulable = $reschedulable;
     }

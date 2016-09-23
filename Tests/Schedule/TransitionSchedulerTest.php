@@ -88,7 +88,7 @@ class TransitionSchedulerTest extends \PHPUnit_Framework_TestCase
             [self::callback(
                 function (ScheduledJob $job) {
                     return
-                        $job->getReschedulable() == true && $job->getJob() instanceof Job;
+                        $job->isReschedulable() == true && $job->getJob() instanceof Job;
                 }
             )]
         );
