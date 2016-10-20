@@ -5,16 +5,14 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-
-        <service id="gtt.workflow.transition_scheduler"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\Schedule\TransitionScheduler"
-                 public="false">
+        <service id="gtt.workflow.action_scheduler"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Schedule\ActionScheduler"
+                 public="false"
+                 lazy="true">
             <!--entity manager configured using config-->
             <argument />
-            <argument type="service" id="gtt.workflow.subject_manipulator" />
             <argument type="service" id="logger"/>
             <tag name="monolog.logger" channel="workflow"/>
         </service>
-
     </services>
 </container>

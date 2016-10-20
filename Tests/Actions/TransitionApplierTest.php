@@ -9,14 +9,14 @@
  * @date   08.08.16
  */
 
-namespace Gtt\Bundle\WorkflowExtensionsBundle\Tests;
+namespace Gtt\Bundle\WorkflowExtensionsBundle\Tests\Actions;
 
-use Gtt\Bundle\WorkflowExtensionsBundle\SubjectManipulator;
-use Gtt\Bundle\WorkflowExtensionsBundle\TransitionApplier;
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
+use Gtt\Bundle\WorkflowExtensionsBundle\Actions\TransitionApplier;
 use PHPUnit_Framework_TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Workflow\Exception\LogicException;
-use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
 
 class TransitionApplierTest extends PHPUnit_Framework_TestCase
@@ -26,26 +26,23 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
      */
     public function testUnavailabilityToPerformTransitionIsReportedByLogger(\Exception $exception, $loggerLevel)
     {
-        $transitionName = "t1";
-        $workflowName = "w1";
-        $subject = new \StdClass();
+        $transitionName  = "t1";
+        $subject         = new \StdClass();
 
         $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
         $workflow->expects(self::once())->method('apply')->with($subject, $transitionName)->willThrowException($exception);
 
-        $workflowRegistry = $this->getMockBuilder(Registry::class)->disableOriginalConstructor()->getMock();
-        $workflowRegistry->expects(self::once())->method('get')->with($subject, $workflowName)->willReturn($workflow);
+        $workflowContext = new WorkflowContext($workflow, $subject, "id");
 
         $logger = $this->getMock(LoggerInterface::class);
         $logger->expects(self::once())->method($loggerLevel);
 
         $applier = new TransitionApplier(
-            $workflowRegistry,
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
             $logger
         );
 
-        $applier->applyTransition($subject, $workflowName, $transitionName);
+        $applier->applyTransition($workflowContext, $transitionName);
     }
 
     public function exceptionAndLogLevelProvider()
@@ -68,7 +65,10 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
         $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
 
         $appliedTransitionCount = count($appliedTransitions);
+
         $callIndex = 0;
+        $workflow->expects(self::at($callIndex))->method('getName');
+        $callIndex++;
         foreach ($appliedTransitions as $transitionName => $applicationResult) {
             $invocationMocker = $workflow->expects(self::at($callIndex))->method('apply')->with($subject, $transitionName);
             if ($applicationResult instanceof \Exception) {
@@ -78,16 +78,14 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
         }
         $workflow->expects($this->exactly($appliedTransitionCount))->method('apply');
 
-        $workflowRegistry = $this->getMockBuilder(Registry::class)->disableOriginalConstructor()->getMock();
-        $workflowRegistry->expects(self::once())->method('get')->with($subject, $workflowName)->willReturn($workflow);
+        $workflowContext = new WorkflowContext($workflow, $subject, "id");
 
         $applier = new TransitionApplier(
-            $workflowRegistry,
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
             $this->getMock(LoggerInterface::class)
         );
 
-        $applier->applyTransitions($subject, $workflowName, $transitions, $cascade);
+        $applier->applyTransitions($workflowContext, $transitions, $cascade);
     }
 
     public function transitionEnvironmentProvider()

@@ -58,19 +58,19 @@ workflow_extensions:
             triggers:
                 event:
                     processing.event:
-                        apply:
-                            - processing
-                            - activating
-                            - closing
+                        actions:
+                            apply_transitions:
+                                - [[processing, activating, closing]]
                         subject_retrieving_expression: 'event.getSubject()'
                     viping.event:
-                        apply:
-                            - viping
-                            - closing_vip
+                        actions:
+                            apply_transitions:
+                                - [[viping, closing_vip]]
                         subject_retrieving_expression: 'event.getSubject()'
                     crazy_closing.event:
-                        apply:
-                            - crazy_closing
+                        actions:
+                            apply_transition:
+                                - [crazy_closing]
                         subject_retrieving_expression: 'event.getSubject()'
             guard:
                 # prevent closing vips

@@ -30,13 +30,12 @@
     "suggest": {
         "jms/job-queue-bundle": "Needed for workflow transitions scheduling",
         "symfony/console": "Needed for workflow transitions scheduling",
-        "nesbot/carbon": "Needed for workflow transitions scheduling"
+        "nesbot/carbon": "Needed for workflow transitions scheduling",
+        "doctrine/doctrine-bundle": "Required for OrmPersistentMarkingStore usage"
     },
     "autoload": {
-        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\": "" }
-    },
-    "autoload-dev": {
-        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\Tests\\": "Tests/" }
+        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\": "" },
+        "exclude-from-classmap": ["/Tests/"]
     },
     "extra": {
         "branch-alias": {

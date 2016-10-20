@@ -11,20 +11,19 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Guard;
 
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\UnsupportedGuardEventException;
-use Gtt\Bundle\WorkflowExtensionsBundle\Logger\WorkflowLoggerContextTrait;
-use Gtt\Bundle\WorkflowExtensionsBundle\SubjectManipulator;
-use Psr\Log\LoggerInterface;
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Event\GuardEvent;
+use Symfony\Component\Workflow\Registry as WorkflowRegistry;
+use Psr\Log\LoggerInterface;
 
 /**
  * Listener for workflow guard events that can block or allow transition with specified expression
  */
 class ExpressionGuard
 {
-    use WorkflowLoggerContextTrait;
-
     /**
      * Expression language
      *
@@ -38,6 +37,13 @@ class ExpressionGuard
      * @var SubjectManipulator
      */
     private $subjectManipulator;
+
+    /**
+     * Workflow registry
+     *
+     * @var WorkflowRegistry
+     */
+    private $workflowRegistry;
 
     /**
      * Logger
@@ -58,12 +64,18 @@ class ExpressionGuard
      *
      * @param ExpressionLanguage $language expression language
      * @param SubjectManipulator $subjectManipulator  subject manipulator
+     * @param WorkflowRegistry   $workflowRegistry    workflow registry
      * @param LoggerInterface    $logger              logger
      */
-    public function __construct(ExpressionLanguage $language, SubjectManipulator $subjectManipulator, LoggerInterface $logger)
+    public function __construct(
+        ExpressionLanguage $language,
+        SubjectManipulator $subjectManipulator,
+        WorkflowRegistry $workflowRegistry,
+        LoggerInterface $logger)
     {
         $this->language           = $language;
         $this->subjectManipulator = $subjectManipulator;
+        $this->workflowRegistry   = $workflowRegistry;
         $this->logger             = $logger;
     }
 
@@ -95,7 +107,12 @@ class ExpressionGuard
 
         list($workflowName, $expression) = $this->supportedEventsConfig[$eventName];
         $subject = $event->getSubject();
-        $loggerContext = $this->getLoggerContext($workflowName, get_class($subject), $this->subjectManipulator->getSubjectId($subject));
+        $workflowContext = new WorkflowContext(
+            $this->workflowRegistry->get($subject, $workflowName),
+            $subject,
+            $this->subjectManipulator->getSubjectId($subject)
+        );
+        $loggerContext = $workflowContext->getLoggerContext();
 
         $expressionFailure = false;
         $errorMessage      = null;

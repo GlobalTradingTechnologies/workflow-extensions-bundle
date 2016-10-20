@@ -9,28 +9,19 @@
  * @date 03.08.16
  */
 
-namespace Gtt\Bundle\WorkflowExtensionsBundle;
+namespace Gtt\Bundle\WorkflowExtensionsBundle\Actions;
 
-use Gtt\Bundle\WorkflowExtensionsBundle\Logger\WorkflowLoggerContextTrait;
-use Psr\Log\LoggerInterface;
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
+use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
 use Symfony\Component\Workflow\Exception\LogicException as WorkflowLogicException;
 use Symfony\Component\Workflow\Registry;
-use Symfony\Component\Workflow\Workflow;
+use Psr\Log\LoggerInterface;
 
 /**
  * Applies workflow transitions
  */
 class TransitionApplier
 {
-    use WorkflowLoggerContextTrait;
-
-    /**
-     * Workflow registry
-     *
-     * @var Registry
-     */
-    private $workflowRegistry;
-
     /**
      * Subject manipulator
      *
@@ -48,13 +39,11 @@ class TransitionApplier
     /**
      * TransitionApplier constructor.
      *
-     * @param Registry           $workflowRegistry   workflow registry
      * @param SubjectManipulator $subjectManipulator subject manipulator
      * @param LoggerInterface    $logger             logger
      */
-    public function __construct(Registry $workflowRegistry, SubjectManipulator $subjectManipulator, LoggerInterface $logger)
+    public function __construct(SubjectManipulator $subjectManipulator, LoggerInterface $logger)
     {
-        $this->workflowRegistry   = $workflowRegistry;
         $this->subjectManipulator = $subjectManipulator;
         $this->logger             = $logger;
     }
@@ -62,30 +51,27 @@ class TransitionApplier
     /**
      * Applies single transition
      *
-     * @param object $subject      subject
-     * @param string $workflowName workflow name
-     * @param string $transitions  transition to be applied
+     * @param WorkflowContext $workflowContext workflow context
+     * @param string          $transition      transition to be applied
      */
-    public function applyTransition($subject, $workflowName, $transition)
+    public function applyTransition(WorkflowContext $workflowContext, $transition)
     {
-        $this->applyTransitions($subject, $workflowName, [$transition]);
+        $this->applyTransitions($workflowContext, [$transition]);
     }
 
     /**
      * Applies list of transitions
      *
-     * @param object $subject      subject
-     * @param string $workflowName workflow name
-     * @param array  $transitions  list of transitions to be applied
-     * @param bool   $cascade      if this flag is set all the available transitions should be applied (it may be cascade);
-     *                             otherwise the first applied transition breaks execution
+     * @param WorkflowContext $workflowContext workflow context
+     * @param array           $transitions     list of transitions to be applied
+     * @param bool            $cascade         if this flag is set all the available transitions should be applied (it
+     *                                         may be cascade); otherwise the first applied transition breaks execution
      */
-    public function applyTransitions($subject, $workflowName, $transitions, $cascade = false)
+    public function applyTransitions(WorkflowContext $workflowContext, array $transitions = [], $cascade = false)
     {
-        /** @var Workflow $workflow */
-        $workflow = $this->workflowRegistry->get($subject, $workflowName);
-
-        $loggerContext = $this->getLoggerContext($workflowName, get_class($subject), $this->subjectManipulator->getSubjectId($subject));
+        $workflow      = $workflowContext->getWorkflow();
+        $subject       = $workflowContext->getSubject();
+        $loggerContext = $workflowContext->getLoggerContext();
 
         $this->logger->debug('Resolved workflow for subject', $loggerContext);
 

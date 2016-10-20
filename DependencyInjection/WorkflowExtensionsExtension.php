@@ -16,6 +16,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -33,23 +34,25 @@ class WorkflowExtensionsExtension extends Extension
         $configuration = $this->getConfiguration($config, $container);
         $config = $this->processConfiguration($configuration, $config);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('applier.xml');
+
+        $loader->load('actions.xml');
 
         $this->registerSubjectManipulatorConfiguration($loader, $container, $config['subject_manipulator']);
 
-        foreach ($config['workflows'] as $workflowName => $workflowConfig) {
-            if (!empty($workflowConfig['triggers'])) {
-                $this->registerTriggerConfiguration(
-                    $loader,
-                    $container,
-                    $workflowConfig['triggers'],
-                    $workflowName,
-                    !empty($config['scheduler']) ? $config['scheduler'] : []
-                );
-            }
-            if (!empty($workflowConfig['guard'])) {
-                $this->registerGuardConfiguration($loader, $container, $workflowConfig['guard'], $workflowName);
-            }
+        if (array_key_exists('workflows', $config)) {
+            $this->registerWorkflowsConfiguration($loader, $container, $config['workflows']);
+        }
+
+        // if there are triggers with actions scheduling, register scheduler config
+        if ($container->getParameter('gtt.workflow.workflows_with_scheduling')) {
+            $this->registerSchedulerConfiguration($loader, $container, $config['scheduler']);
+        } else {
+            // remove scheduler listener is scheduler is not used
+            $container->removeDefinition('gtt.workflow.trigger.event.listener.scheduler');
+        }
+
+        if (array_key_exists('actions', $config)) {
+            $this->registerActionsConfiguration($config['actions'], $container);
         }
     }
 
@@ -61,7 +64,9 @@ class WorkflowExtensionsExtension extends Extension
      * @param array            $subjectManipulatorConfig subject manipulator config
      */
     private function registerSubjectManipulatorConfiguration(
-        LoaderInterface $loader, ContainerBuilder $container, array $subjectManipulatorConfig)
+        LoaderInterface $loader,
+        ContainerBuilder $container,
+        array $subjectManipulatorConfig)
     {
         $loader->load('subject_manipulator.xml');
 
@@ -88,71 +93,82 @@ class WorkflowExtensionsExtension extends Extension
     }
 
     /**
-     * Adjusts trigger configurations
+     * Registers workflows configuration section
      *
      * @param LoaderInterface  $loader          config loader
      * @param ContainerBuilder $container       container
-     * @param array            $triggersConfig  triggers config
-     * @param string           $workflowName    workflow name
-     * @param array            $schedulerConfig scheduler config
+     * @param array            $workflowsConfig workflows config
      */
-    private function registerTriggerConfiguration(
-        LoaderInterface $loader,
-        ContainerBuilder $container,
-        array $triggersConfig,
-        $workflowName,
-        array $schedulerConfig)
+    private function registerWorkflowsConfiguration(LoaderInterface $loader, ContainerBuilder $container, array $workflowsConfig)
     {
-        $loader->load('triggers.xml');
+        $triggerConfigLoaded = false;
+        $guardConfigLoaded   = false;
+        foreach ($workflowsConfig as $workflowName => $workflowConfig) {
+            if (!empty($workflowConfig['triggers'])) {
+                if (!$triggerConfigLoaded) {
+                    $loader->load('triggers.xml');
+                    $triggerConfigLoaded = true;
+                }
+                $this->registerTriggerConfiguration($container, $workflowName, $workflowConfig['triggers']);
+            }
+            if (!empty($workflowConfig['guard'])) {
+                if (!$guardConfigLoaded) {
+                    $loader->load('guard.xml');
+                    $guardConfigLoaded = true;
+                }
+                $this->registerGuardConfiguration($loader, $container, $workflowName, $workflowConfig['guard']);
+            }
+        }
+    }
 
+    /**
+     * Adjusts trigger configurations
+     *
+     * @param ContainerBuilder $container       container
+     * @param string           $workflowName    workflow name
+     * @param array            $triggersConfig  triggers config
+     */
+    private function registerTriggerConfiguration(ContainerBuilder $container, $workflowName, array $triggersConfig)
+    {
         $workflowsWithScheduling = [];
-        $schedulerRegistered = false;
-        $triggerEventListenerDefinition = $container->findDefinition('gtt.workflow.trigger.event.listener');
+
+        $actionListenerDefinition     = $container->findDefinition('gtt.workflow.trigger.event.listener.action');
+        $expressionListenerDefinition = $container->findDefinition('gtt.workflow.trigger.event.listener.expression');
+        $schedulerListenerDefinition  = $container->findDefinition('gtt.workflow.trigger.event.listener.scheduler');
+
         foreach ($triggersConfig as $triggerType => $triggerConfig) {
             switch ($triggerType) {
                 case 'event':
                     foreach ($triggerConfig as $eventName => $eventConfig) {
-                        $registerTriggerEventArgs = [
-                            $eventName,
-                            $workflowName,
-                            $eventConfig['subject_retrieving_expression']
-                        ];
+                        $registerTriggerEventArgs = [$eventName, $workflowName, $eventConfig['subject_retrieving_expression']];
 
-                        $transitions          = [];
-                        $scheduledTransitions = [];
+                        if (!empty($eventConfig['actions'])) {
+                            $this->registerTriggerEventForListener(
+                                $actionListenerDefinition,
+                                $eventName,
+                                array_merge($registerTriggerEventArgs, [$eventConfig['actions']])
+                            );
+                        }
 
-                        if (!empty($eventConfig['apply'])) {
-                            $transitions = $eventConfig['apply'];
+                        if (!empty($eventConfig['expression'])) {
+                            $this->registerTriggerEventForListener(
+                                $expressionListenerDefinition,
+                                $eventName,
+                                array_merge($registerTriggerEventArgs, [$eventConfig['expression']])
+                            );
                         }
 
                         if (!empty($eventConfig['schedule'])) {
-                            if (!$schedulerRegistered) {
-                                $this->registerSchedulerConfiguration($loader, $container, $schedulerConfig);
-                                $triggerEventListenerDefinition->addMethodCall(
-                                    'setScheduler',
-                                    [new Reference('gtt.workflow.transition_scheduler')]
-                                );
-                                $schedulerRegistered = true;
-                            }
-                            $scheduledTransitions = $eventConfig['schedule'];
+                            $this->registerTriggerEventForListener(
+                                $schedulerListenerDefinition,
+                                $eventName,
+                                array_merge($registerTriggerEventArgs, [$eventConfig['schedule']])
+                            );
 
                             if (!in_array($workflowName, $workflowsWithScheduling)) {
                                 $workflowsWithScheduling[] = $workflowName;
                             }
                         }
-
-                        $registerTriggerEventArgs[] = $transitions;
-                        $registerTriggerEventArgs[] = $scheduledTransitions;
-
-                        $triggerEventListenerDefinition->addMethodCall(
-                            'registerTriggerEvent',
-                            $registerTriggerEventArgs
-                        );
-
-                        $triggerEventListenerDefinition->addTag(
-                            'kernel.event_listener',
-                            ['event' => $eventName, 'method' => 'handleEvent']
-                        );
                     }
 
                     break;
@@ -165,6 +181,19 @@ class WorkflowExtensionsExtension extends Extension
         // parameter used to check that all the configs needed for scheduling are collected
         // see \Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Compiler\CheckSubjectManipulatorConfigPass
         $container->setParameter('gtt.workflow.workflows_with_scheduling', $workflowsWithScheduling);
+    }
+
+    /**
+     * Configures event listener with particular event and arguments
+     *
+     * @param Definition $listenerDefinition listener definition
+     * @param string     $eventName          event name
+     * @param array      $arguments          arguments for event handling
+     */
+    private function registerTriggerEventForListener(Definition $listenerDefinition, $eventName, array $arguments)
+    {
+        $listenerDefinition->addMethodCall('registerEvent', $arguments);
+        $listenerDefinition->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'dispatchEvent']);
     }
 
     /**
@@ -182,8 +211,9 @@ class WorkflowExtensionsExtension extends Extension
 
         $loader->load("scheduler.xml");
 
-        $schedulerDefinition      = $container->findDefinition('gtt.workflow.transition_scheduler');
+        $schedulerDefinition      = $container->findDefinition('gtt.workflow.action_scheduler');
         $schedulerEntityManagerId = sprintf('doctrine.orm.%s_entity_manager', $schedulerConfig['entity_manager']);
+
         $schedulerDefinition->replaceArgument(0, new Reference($schedulerEntityManagerId));
     }
 
@@ -192,10 +222,10 @@ class WorkflowExtensionsExtension extends Extension
      *
      * @param LoaderInterface  $loader       config loader
      * @param ContainerBuilder $container    container
-     * @param array            $guardConfig  workflow trigger config
      * @param string           $workflowName workflow name
+     * @param array            $guardConfig  workflow trigger config
      */
-    private function registerGuardConfiguration(LoaderInterface $loader, ContainerBuilder $container, $guardConfig, $workflowName)
+    private function registerGuardConfiguration(LoaderInterface $loader, ContainerBuilder $container, $workflowName, $guardConfig)
     {
         $loader->load('guard.xml');
 
@@ -226,5 +256,31 @@ class WorkflowExtensionsExtension extends Extension
     {
         $guardDefinition->addMethodCall('registerGuardExpression', [$eventName, $workflowName, $expression]);
         $guardDefinition->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'guardTransition']);
+    }
+
+    /**
+     * Register configuration for actions section
+     *
+     * @param array            $actionConfigs actions config
+     * @param ContainerBuilder $container     container
+     */
+    private function registerActionsConfiguration(array $actionConfigs, ContainerBuilder $container)
+    {
+        $registryDefinition = $container->findDefinition('gtt.workflow.action.registry');
+        $factoryClass = $container->getParameter("gtt.workflow.action.action_reference.class");
+
+        foreach ($actionConfigs as $actionName => $actionConfig) {
+            $actionDefinition = new DefinitionDecorator("gtt.workflow.action.prototype");
+
+            if (array_key_exists('service', $actionConfig)) {
+                $actionDefinition->setFactory([$factoryClass, 'createByServiceId']);
+                $actionDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
+            } else {
+                $actionDefinition->setFactory([$factoryClass, 'createByClass']);
+                $actionDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
+            }
+
+            $registryDefinition->addMethodCall('add', [$actionName, $actionDefinition]);
+        }
     }
 }

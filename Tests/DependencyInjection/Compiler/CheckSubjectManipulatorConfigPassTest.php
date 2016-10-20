@@ -9,8 +9,7 @@
  * Date: 30.08.16
  */
 
-namespace Tests\DependencyInjection\Compiler;
-
+namespace Gtt\Bundle\WorkflowExtensionsBundle\Tests\DependencyInjection\Compiler;
 
 use Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Compiler\CheckSubjectManipulatorConfigPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
