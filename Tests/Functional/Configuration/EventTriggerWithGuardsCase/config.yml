@@ -68,9 +68,8 @@ workflow_extensions:
                                 - [[viping, closing_vip]]
                         subject_retrieving_expression: 'event.getSubject()'
                     crazy_closing.event:
-                        actions:
-                            apply_transition:
-                                - [crazy_closing]
+                        # example of expression usage (it is the same as direct usage of action apply_transition or apply_transitions like above)
+                        expression: "apply_transition('crazy_closing')"
                         subject_retrieving_expression: 'event.getSubject()'
             guard:
                 # prevent closing vips
