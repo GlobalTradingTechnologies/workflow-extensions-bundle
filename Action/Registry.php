@@ -13,13 +13,15 @@
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
 
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\ActionException;
+use IteratorAggregate;
+use ArrayIterator;
 
 /**
  * Workflow action registry
  *
  * @author fduch <alex.medwedew@gmail.com>
  */
-class Registry
+class Registry implements IteratorAggregate
 {
     /**
      * List of workflow actions
@@ -69,5 +71,10 @@ class Registry
         }
 
         return $this->actions[$actionName];
+    }
+
+    public function getIterator()
+    {
+        return new ArrayIterator($this->actions);
     }
 }
