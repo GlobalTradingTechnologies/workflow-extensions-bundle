@@ -46,7 +46,7 @@ class ActionExpressionLanguage extends ContainerAwareExpressionLanguage
                     $compiledArgsArray = "array(". implode(", ", $rawArgs) . ")";
 
                     return sprintf(
-                        '$container->get("gtt.workflow.action.executor")->get("%s", $workflowContext, %s)',
+                        '$container->get("gtt.workflow.action.executor")->execute($workflowContext, "%s", %s)',
                         $actionName,
                         $compiledArgsArray
                     );
