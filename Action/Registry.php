@@ -12,6 +12,7 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
 
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\ActionException;
 use IteratorAggregate;
 use ArrayIterator;
@@ -26,7 +27,7 @@ class Registry implements IteratorAggregate
     /**
      * List of workflow actions
      *
-     * @var ActionReference[]
+     * @var ActionReferenceInterface[]
      */
     private $actions = [];
 
@@ -45,10 +46,10 @@ class Registry implements IteratorAggregate
     /**
      * Registers action by name in repository
      *
-     * @param string          $actionName action name
-     * @param ActionReference $action     action reference
+     * @param string                   $actionName action name
+     * @param ActionReferenceInterface $action     action reference
      */
-    public function add($actionName, ActionReference $action)
+    public function add($actionName, ActionReferenceInterface $action)
     {
         if (array_key_exists($actionName, $this->actions)) {
             throw ActionException::actionAlreadyRegistered($actionName);
@@ -62,7 +63,7 @@ class Registry implements IteratorAggregate
      *
      * @param string $actionName action name
      *
-     * @return ActionReference
+     * @return ActionReferenceInterface
      */
     public function get($actionName)
     {

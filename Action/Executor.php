@@ -12,7 +12,9 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
 
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -61,11 +63,14 @@ class Executor
     {
         $actionReference = $this->registry->get($actionName);
 
-        if ($actionReference->getType() == ActionReference::TYPE_WORKFLOW) {
+        if ($actionReference->getType() == ActionReferenceInterface::TYPE_WORKFLOW) {
             array_unshift($args, $workflowContext);
         }
-        // container should be injected to allow action to use service as an method owner
-        $actionReference->setContainer($this->container);
+
+        if ($actionReference instanceof ContainerAwareInterface) {
+            // container should be injected to allow action to use service as an method owner
+            $actionReference->setContainer($this->container);
+        }
 
         return $actionReference->invoke($args);
     }

@@ -11,8 +11,7 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection;
 
-use DateInterval;
-use Gtt\Bundle\WorkflowExtensionsBundle\Action\ActionReference;
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Enum\ActionArgumentTypes;
 use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -21,6 +20,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
+use DateInterval;
 
 /**
  * Configuration class for DI
@@ -66,13 +66,13 @@ class Configuration implements ConfigurationInterface
             ->prototype('array')
                 ->children()
                     ->enumNode('type')
-                        ->values([ActionReference::TYPE_REGULAR, ActionReference::TYPE_WORKFLOW])
+                        ->values([ActionReferenceInterface::TYPE_REGULAR, ActionReferenceInterface::TYPE_WORKFLOW])
                         ->cannotBeEmpty()
-                        ->defaultValue(ActionReference::TYPE_REGULAR)
+                        ->defaultValue(ActionReferenceInterface::TYPE_REGULAR)
                         ->beforeNormalization()
                             ->ifString()
                             ->then(function($v) {
-                                return constant(ActionReference::class."::TYPE_".strtoupper($v));
+                                return constant(ActionReferenceInterface::class."::TYPE_".strtoupper($v));
                             })
                         ->end()
                     ->end()

@@ -17,9 +17,14 @@ use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
  */
 class ActionException extends RuntimeException
 {
-    public static function actionReferenceObjectUnavailable($serviceId)
+    public static function containerUnavailableForServiceMethodReference($serviceId)
     {
-        return new static(sprintf('Cannot retrieve object for action reference for service id "%s"', $serviceId));
+        return new static(
+            sprintf(
+                'Cannot retrieve object for action reference for service id "%s" due to ContainerInterface instance is not set',
+                $serviceId
+            )
+        );
     }
 
     public static function actionAlreadyRegistered($actionName)

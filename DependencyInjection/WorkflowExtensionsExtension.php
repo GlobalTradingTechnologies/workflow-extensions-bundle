@@ -267,20 +267,17 @@ class WorkflowExtensionsExtension extends Extension
     private function registerActionsConfiguration(array $actionConfigs, ContainerBuilder $container)
     {
         $registryDefinition = $container->findDefinition('gtt.workflow.action.registry');
-        $factoryClass = $container->getParameter("gtt.workflow.action.action_reference.class");
 
         foreach ($actionConfigs as $actionName => $actionConfig) {
-            $actionDefinition = new DefinitionDecorator("gtt.workflow.action.prototype");
-
             if (array_key_exists('service', $actionConfig)) {
-                $actionDefinition->setFactory([$factoryClass, 'createByServiceId']);
-                $actionDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
+                $actionReferenceDefinition = new DefinitionDecorator("gtt.workflow.action.service_method.reference.prototype");
+                $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
             } else {
-                $actionDefinition->setFactory([$factoryClass, 'createByClass']);
-                $actionDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
+                $actionReferenceDefinition = new DefinitionDecorator("gtt.workflow.action.static_method.reference.prototype");
+                $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
             }
 
-            $registryDefinition->addMethodCall('add', [$actionName, $actionDefinition]);
+            $registryDefinition->addMethodCall('add', [$actionName, $actionReferenceDefinition]);
         }
     }
 }

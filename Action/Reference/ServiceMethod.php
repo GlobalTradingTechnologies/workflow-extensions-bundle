@@ -10,42 +10,26 @@
  * Date: 14.09.16
  */
 
-namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
+namespace Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference;
 
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\ActionException;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use ReflectionMethod;
 
 /**
- * Reference to service method or static class method
+ * Reference to service method
  *
  * @author fduch <alex.medwedew@gmail.com>
  */
-class ActionReference implements ContainerAwareInterface
+class ServiceMethod implements ActionReferenceInterface, ContainerAwareInterface
 {
-    /**
-     * Base default action type
-     */
-    const TYPE_REGULAR = "regular";
-
-    /**
-     * Action type requires WorkflowContext instance as first argument in arguments list
-     */
-    const TYPE_WORKFLOW = "workflow";
-
     /**
      * Service id of the object which method is used as an action
      *
-     * @var string|null
+     * @var string
      */
     private $serviceId;
-
-    /**
-     * FQCN which static method is used as an action
-     *
-     * @var string|null
-     */
-    private $className;
 
     /**
      * Method name used as action
@@ -64,15 +48,15 @@ class ActionReference implements ContainerAwareInterface
     /**
      * Action method reflection
      *
-     * @var \ReflectionMethod
+     * @var ReflectionMethod
      */
     private $reflectionMethod;
 
     /**
-     * Target object object which method is used as an action or null in static context
+     * Target object object which method is used as an action
      * Used internally to invoke action
      *
-     * @var object|null
+     * @var object
      */
     private $object;
 
@@ -84,49 +68,17 @@ class ActionReference implements ContainerAwareInterface
     private $container;
 
     /**
-     * Creates ActionReference by service
-     *
-     * @param string $methodName method name
-     * @param int    $serviceId  service id which method is used as an action
-     * @param string $type       action reference type
-     */
-    public static function createByServiceId($methodName, $serviceId, $type = self::TYPE_REGULAR)
-    {
-        return new static($methodName, $serviceId, null, $type);
-    }
-
-    /**
-     * Creates ActionReference by FQCN
-     *
-     * @param string $methodName method name
-     * @param string $class      FQCN of the class which method is used as an action
-     * @param string $type       action reference type
-     */
-    public static function createByClass($methodName, $className, $type = self::TYPE_REGULAR)
-    {
-        return new static($methodName, null, $className, $type);
-    }
-
-    /**
      * ActionReference constructor.
      *
      * @param string $methodName method name
      * @param int    $serviceId  service id which method is used as an action
-     * @param string $class      FQCN of the class which method is used as an action
      * @param string $type       action reference type
      */
-    private function __construct($methodName, $serviceId = null, $class = null, $type = self::TYPE_REGULAR)
+    public function __construct($methodName, $serviceId, $type = self::TYPE_REGULAR)
     {
         $this->methodName = $methodName;
+        $this->serviceId  = $serviceId;
         $this->type       = $type;
-
-        if ($serviceId) {
-            $this->serviceId = $serviceId;
-        }
-
-        if ($class) {
-            $this->className = $class;
-        }
     }
 
     /**
@@ -162,32 +114,27 @@ class ActionReference implements ContainerAwareInterface
     /**
      * Returns reflection method
      *
-     * @return \ReflectionMethod
+     * @return ReflectionMethod
      */
     private function getReflectionMethod()
     {
         if (!$this->reflectionMethod) {
-            $classOrObject = $this->className ?: $this->getObject();
-            $this->reflectionMethod = new \ReflectionMethod($classOrObject, $this->methodName);
+            $this->reflectionMethod = new ReflectionMethod($this->getObject(), $this->methodName);
         }
 
         return $this->reflectionMethod;
     }
 
     /**
-     * Returns target object for regular methods and null for static methods
+     * Returns service object
      *
-     * @return object|null
+     * @return object
      */
     private function getObject()
     {
-        if ($this->className) {
-            return null;
-        }
-
         if (!$this->object) {
             if (!$this->container) {
-                throw ActionException::actionReferenceObjectUnavailable($this->serviceId);
+                throw ActionException::containerUnavailableForServiceMethodReference($this->serviceId);
             }
 
             $this->object = $this->container->get($this->serviceId);

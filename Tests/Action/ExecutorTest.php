@@ -12,25 +12,26 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Tests\Action;
 
-use Gtt\Bundle\WorkflowExtensionsBundle\Action\ActionReference;
 use Gtt\Bundle\WorkflowExtensionsBundle\Action\Executor;
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\Action\Registry;
+use Gtt\Bundle\WorkflowExtensionsBundle\Tests\Action\Reference\ContainerAwareActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Workflow\Workflow;
 
 class ExecutorTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @dataProvider actionProvider
+     * @dataProvider actionReferenceProvider
      */
-    public function testEvaluatesAction($actionReferenceType, $inputArgs, $expectedArgs, WorkflowContext $wc)
+    public function testEvaluatesAction($actionReferenceClass, $actionReferenceType, $inputArgs, $expectedArgs, WorkflowContext $wc)
     {
         $container = $this->getMock(ContainerInterface::class);
 
         $actionName = "a1";
-        $actionReference = $this->getMockBuilder(ActionReference::class)->disableOriginalConstructor()->getMock();
-        $actionReference->expects(self::once())->method('setContainer')->with(self::equalTo($container));
+        $actionReference = $this->getMockBuilder(ActionReferenceInterface::class)->disableOriginalConstructor()->getMock();
         $actionReference->expects(self::once())->method('invoke')->with($expectedArgs);
         $actionReference->expects(self::once())->method('getType')->willReturn($actionReferenceType);
 
@@ -41,7 +42,7 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
         $executor->execute($wc, $actionName, $inputArgs);
     }
 
-    public function actionProvider()
+    public function actionReferenceProvider()
     {
         $data = [];
 
@@ -53,13 +54,20 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
 
         $defaultInputActionArgs = ['some' => 'arg', "more"];
 
-        // regular action
-        $data[] = [ActionReference::TYPE_REGULAR, $defaultInputActionArgs, $defaultInputActionArgs, $workflowContext];
+        // regular action (non-container-aware)
+        $data[] = [ActionReferenceInterface::class, ActionReferenceInterface::TYPE_REGULAR, $defaultInputActionArgs, $defaultInputActionArgs, $workflowContext];
 
-        // workflow action
+        // regular action (container-aware)
+        $data[] = [ContainerAwareActionReferenceInterface::class, ActionReferenceInterface::TYPE_REGULAR, $defaultInputActionArgs, $defaultInputActionArgs, $workflowContext];
+
         $workflowActionInputArgs = $defaultInputActionArgs;
         array_unshift($workflowActionInputArgs, $workflowContext);
-        $data[] = [ActionReference::TYPE_WORKFLOW, $defaultInputActionArgs, $workflowActionInputArgs, $workflowContext];
+
+        // workflow action (non-container-aware)
+        $data[] = [ActionReferenceInterface::class, ActionReferenceInterface::TYPE_WORKFLOW, $defaultInputActionArgs, $workflowActionInputArgs, $workflowContext];
+
+        // workflow action (container-aware)
+        $data[] = [ContainerAwareActionReferenceInterface::class, ActionReferenceInterface::TYPE_WORKFLOW, $defaultInputActionArgs, $workflowActionInputArgs, $workflowContext];
 
         return $data;
     }
