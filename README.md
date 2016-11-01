@@ -73,7 +73,7 @@ to log important aspects in details. All the WorkflowExtensionsBundle subsystems
 
 There is one non-trivial thing here: how to retrieve subject id from subject. More often subject id can be fetched by invoking `getId()` method, - in this case you have nothing to do.
 Otherwise (when your subject class has no `getId()` method or there is the other one should be used to get subject's identifier) you need to specify expression to get subject identifier. This expression will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language) component with `subject` variable that represents subject object:
-```yml
+```yaml
 workflow_extensions:
     subject_manipulator:
         My\Bundle\Entity\Order: ~
@@ -83,7 +83,7 @@ workflow_extensions:
 ## Event-based transitions processing
 One of the most important use cases of WorkflowExtensionsBundle is to execute some workflow manipulations as a reaction to the particular system events. Any [Symfony's Event](https://github.com/symfony/event-dispatcher/blob/3.1/Event.php) instance can play the role of such firing event.
 In order to subscribe workflow processing to such an event you should start with config like this:
-```yml
+```yaml
 workflow_extensions:
     workflows:
         simple:
@@ -108,15 +108,16 @@ For each workflow then you define target event and configure processing details 
 ### Event-based transitions triggering
 WorkflowExtensionsBundle makes possible to trigger workflow transitions when particular event is fired.
 For example if you want to trigger transition `to_processing` when workflow subject (My\Bundle\Entity\Order instance) is created (order_created.event is fired) the WorkflowExtensionsBundle's config can look like this:  
-```yml
+```yaml
 workflow_extensions:
     workflows:
         simple:
             triggers:
                 event:
                     order_created.event:
-                        apply:
-                            - to_processing
+                        actions:
+                            apply_transition:
+                                - [to_processing]
                         subject_retrieving_expression: 'event.getOrder()'
     subject_manipulator:
         My\Bundle\Entity\Order: ~
@@ -124,7 +125,19 @@ workflow_extensions:
 In example above `subject_retrieving_expression` section contains expression (it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language)) used to retrieve workflow subject.
 Since expression language that evaluates these expressions has container variable (represents DI Container) enabled you can construct more complicated things for example like this here: ```"container.get('doctrine').getEntityMangerForClass('My\\\\Bundle\\\\Entity\\\\Order').find('My\\\\Bundle\\\\Entity\\\\Order', event.getId())"``` (Lot of backslashes is set due to specialty of [expression language syntax](http://symfony.com/doc/current/components/expression_language/syntax.html)). 
 
-You can also specify more then one transition to be tried to perform when event is fired. In this case (by default) the first applicable transition would be applied.
+You can also specify more then one transition to be tried to perform when event is fired by using `apply_transitions` construction like this:
+```yaml
+    apply_transitions:
+        - [[to_processing, closing]]
+```
+In this case (by default) the first applicable transition would be applied.
+You can also consequentially try to apply several transitions without breaking execution after first successfully applied transition using ability to 
+invoke `apply_transition` action several times in line with different arguments:
+ ```yaml
+    apply_transition:
+        - [to_processing]
+        - [closing]
+```
 
 ### Event-based transitions scheduling
 Events can be used not only to immediately apply transitions, - you can also schedule it with specified offset.
@@ -132,7 +145,7 @@ WorkflowExtensionsBundle uses [jms/job-queue-bundle](https://packagist.org/packa
 Imagine you need to apply transition `set_problematic` that places workflow subject `Order` into state "Problematic" if it is not correctly processed in 30 days.
 Such goal can be achieved using config like this:  
  
-```yml
+```yaml
 workflow_extensions:
     workflows:
         simple:
@@ -140,21 +153,26 @@ workflow_extensions:
                 event:
                     order_created.event:
                         schedule:
-                            closing:
-                                offset: P30D
+                            apply_transition:
+                                -
+                                    arguments: [closing]
+                                    offset: P30D
                         subject_retrieving_expression: 'event.getOrder()'
     scheduler: ~                
     subject_manipulator:
         My\Bundle\Entity\Order:
             subject_from_domain: "container.get('doctrine').getManagerForClass(subjectClass).find(subjectClass, subjectId)"
 ```    
-Configuration above is similar to previous one with three differences.
+Configuration above is similar to previous one with several differences.
 
-The first difference is `offset` key that defines time interval (according to [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601#Durations)) started from the moment when corresponding trigger event occurred and after that scheduled transition should be applied.
+The first difference is that `actions` is replaced with `schedule` key to tell the engine that actions below should be executed deferred.
 
-The second difference is that you need to configure `scheduler` section to activate scheduler engine. Also it can be used to set particular entity manager to persist scheduler jobs.
+The second difference is each action's arguments are defined now under explicit `arguments` key (which is automatically set under the hood for [simple triggering](#event-based-transitions-triggering) thanks to [configuration normalization rules](http://symfony.com/doc/current/components/config/definition.html#normalization) and also can be set explicitly there) and
+`offset` key that defines time interval (according to [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601#Durations)) started from the moment when corresponding trigger event occurred and after that scheduled transition should be applied.
 
-The third difference is that you must configure under `subject_manipulator`'s `subject_from_domain` key expression (it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language)) that will be used to retrieve workflow subject when scheduled transition will be tried to be applied.
+The third difference is that you need to configure `scheduler` section to activate scheduler engine. Also it can be used to set particular entity manager to persist scheduler jobs.
+
+The fourth difference is that you must configure under `subject_manipulator`'s `subject_from_domain` key expression (it will be evaluated by [ExpressionLanguage](https://github.com/symfony/expression-language)) that will be used to retrieve workflow subject when scheduled transition will be tried to be applied.
 The subjectClass (for example My\Bundle\Entity\Order) and subjectId (i.e. identifier you can use to fetch the object) are the expression variables here. Moreover you can use DI container here again since it also registered as expression variable. 
 
 Another feature here is that if you have frequent repeatable event that schedules transition then for the first time when event is fired transition would be simply scheduled and next event occurrences will just reset scheduler countdown to restart it from current moment.
@@ -162,7 +180,7 @@ This behaviour can be very useful when you need continuously delay particular tr
 ## Transition blocking
 Basically you can prevent transition from applying explicitly by listening special [GuardEvent](https://github.com/symfony/workflow/blob/master/Event/GuardEvent.php) and call its `setBlocked` method inside. With the help of WorkflowExtensionsBundle you can automate things again.
 For example if you to block all the transitions invoked by non-ROLE_USER users and allow only managers (ROLE_MANAGER holders) to apply `dangerous` transition you should use config like this:
-```yml
+```yaml
 workflow_extensions:
     workflows:
         simple:
