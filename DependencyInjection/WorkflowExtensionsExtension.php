@@ -47,7 +47,7 @@ class WorkflowExtensionsExtension extends Extension
         if ($container->getParameter('gtt.workflow.workflows_with_scheduling')) {
             $this->registerSchedulerConfiguration($loader, $container, $config['scheduler']);
         } else {
-            // remove scheduler listener is scheduler is not used
+            // remove scheduler listener if scheduler is not used
             $container->removeDefinition('gtt.workflow.trigger.event.listener.scheduler');
         }
 
@@ -270,10 +270,10 @@ class WorkflowExtensionsExtension extends Extension
 
         foreach ($actionConfigs as $actionName => $actionConfig) {
             if (array_key_exists('service', $actionConfig)) {
-                $actionReferenceDefinition = new DefinitionDecorator("gtt.workflow.action.service_method.reference.prototype");
+                $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.service_method.reference.prototype');
                 $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
             } else {
-                $actionReferenceDefinition = new DefinitionDecorator("gtt.workflow.action.static_method.reference.prototype");
+                $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.static_method.reference.prototype');
                 $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
             }
 

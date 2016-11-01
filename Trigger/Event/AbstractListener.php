@@ -18,6 +18,8 @@ use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Registry;
 use Psr\Log\LoggerInterface;
+use Exception;
+use Throwable;
 
 /**
  * Holds base functionality for all workflow event listeners
@@ -154,13 +156,13 @@ abstract class AbstractListener
     {
         try {
             call_user_func($closure);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(
                 sprintf('Cannot %s on event "%s". Details: %s', $activity, $eventName, $e->getMessage()),
                 $workflowContext->getLoggerContext()
             );
-        } catch (\Throwable $e) {
-            $this->logger->error(
+        } catch (Throwable $e) {
+            $this->logger->critical(
                 sprintf('Cannot %s on event "%s". Details: %s', $activity, $eventName, $e->getMessage()),
                 $workflowContext->getLoggerContext()
             );
@@ -196,14 +198,14 @@ abstract class AbstractListener
 
                 return $subject;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $error = sprintf(
                 "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Error: '%s'. Please check retrieving expression",
                 $eventName,
                 $subjectRetrievingExpression,
                 $e->getMessage()
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $error = sprintf(
                 "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Error: '%s'. Please check retrieving expression",
                 $eventName,

@@ -14,8 +14,9 @@ namespace Gtt\Bundle\WorkflowExtensionsBundle\Actions;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
 use Symfony\Component\Workflow\Exception\LogicException as WorkflowLogicException;
-use Symfony\Component\Workflow\Registry;
 use Psr\Log\LoggerInterface;
+use Exception;
+use Throwable;
 
 /**
  * Applies workflow transitions
@@ -92,13 +93,13 @@ class TransitionApplier
                     sprintf('Workflow transition "%s" cannot be applied due to it is not allowed', $transition),
                     $loggerContext
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error(
                     sprintf('Workflow cannot apply transition "%s" due to exception. Details: %s', $transition, $e->getMessage()),
                     $loggerContext
                 );
-            } catch (\Throwable $e) {
-                $this->logger->error(
+            } catch (Throwable $e) {
+                $this->logger->critical(
                     sprintf('Workflow cannot apply transition "%s" due to exception. Details: %s', $transition, $e->getMessage()),
                     $loggerContext
                 );

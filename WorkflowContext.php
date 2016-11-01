@@ -17,6 +17,12 @@ use Symfony\Component\Workflow\Workflow;
 /**
  * Workflow context
  *
+ * Data Value Object holds workflow, subject, subjectId.
+ *
+ * TODO: probably we need fetch subject id (using SubjectManipulator) dynamically in order to exclude
+ * probability of diverging of real subject id with the one stored in WorkflowContext
+ * (this can be occurred if workflow subject changes it's ID).
+ *
  * @author fduch <alex.medwedew@gmail.com>
  */
 class WorkflowContext
@@ -89,7 +95,7 @@ class WorkflowContext
     {
         return [
             'workflow' => $this->workflow->getName(),
-            'class'    => get_class($this->getSubject()),
+            'class'    => get_class($this->subject),
             'id'       => $this->subjectId
         ];
     }

@@ -50,7 +50,7 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
         $guard = new ExpressionGuard(
             $language,
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
-            $this->prepareValidWorkflowRegistry(),
+            $this->prepareValidWorkflowRegistryMock(),
             $logger
         );
 
@@ -74,7 +74,7 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
         $guard = new ExpressionGuard(
             $language,
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
-            $this->prepareValidWorkflowRegistry(),
+            $this->prepareValidWorkflowRegistryMock(),
             $logger
         );
 
@@ -98,7 +98,7 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
         $guard = new ExpressionGuard(
             $language,
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
-            $this->prepareValidWorkflowRegistry(),
+            $this->prepareValidWorkflowRegistryMock(),
             $logger
         );
 
@@ -137,7 +137,7 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
     /**
      * @return \PHPUnit_Framework_MockObject_MockObject|Registry
      */
-    private function prepareValidWorkflowRegistry()
+    private function prepareValidWorkflowRegistryMock()
     {
         $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
         $workflow->expects(self::once())->method('getName')->willReturn('test');

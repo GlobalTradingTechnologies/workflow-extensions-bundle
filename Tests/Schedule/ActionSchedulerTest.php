@@ -121,6 +121,6 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
         $em = $this->getMockBuilder(ObjectManager::class)->disableOriginalConstructor()->getMock();
         $em->expects(self::once())->method('getRepository')->with(ScheduledJob::class)->willReturn($repository);
 
-        return array($workflowContext, $repository, $em);
+        return [$workflowContext, $repository, $em];
     }
 }

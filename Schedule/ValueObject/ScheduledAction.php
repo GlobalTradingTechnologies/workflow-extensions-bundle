@@ -30,15 +30,17 @@ class ScheduledAction extends Action
     private $offset;
 
     /**
+     * Flag defines current scheduled action can be rescheduled or not
+     *
      * @var boolean
      */
-    private $reschedulable;
+    private $isReschedulable;
 
-    public function __construct($name, array $arguments, $offset, $reschedulable = false)
+    public function __construct($name, array $arguments, $offset, $isReschedulable = false)
     {
         parent::__construct($name, $arguments);
-        $this->offset        = new DateInterval($offset);
-        $this->reschedulable = $reschedulable;
+        $this->offset          = new DateInterval($offset);
+        $this->isReschedulable = $isReschedulable;
     }
 
     /**
@@ -56,6 +58,6 @@ class ScheduledAction extends Action
      */
     public function isReschedulable()
     {
-        return $this->reschedulable;
+        return $this->isReschedulable;
     }
 }

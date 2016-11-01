@@ -18,6 +18,8 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Registry as WorkflowRegistry;
 use Psr\Log\LoggerInterface;
+use Exception;
+use Throwable;
 
 /**
  * Listener for workflow guard events that can block or allow transition with specified expression
@@ -119,7 +121,7 @@ class ExpressionGuard
 
         try {
             $expressionResult = $this->language->evaluate($expression, ['event' => $event]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $errorMessage = sprintf(
                 "Guard expression '%s' for guard event '%s' cannot be evaluated. Details: '%s'",
                 $expression,
@@ -127,7 +129,7 @@ class ExpressionGuard
                 $e->getMessage()
             );
             $expressionFailure = true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $errorMessage = sprintf(
                 "Guard expression '%s' for guard event '%s' cannot be evaluated. Details: '%s'",
                 $expression,

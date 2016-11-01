@@ -30,7 +30,7 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
     {
         $container = $this->getMock(ContainerInterface::class);
 
-        $actionName = "a1";
+        $actionName = 'a1';
         $actionReference = $this->getMockBuilder(ActionReferenceInterface::class)->disableOriginalConstructor()->getMock();
         $actionReference->expects(self::once())->method('invoke')->with($expectedArgs);
         $actionReference->expects(self::once())->method('getType')->willReturn($actionReferenceType);
@@ -52,7 +52,7 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
             1
         );
 
-        $defaultInputActionArgs = ['some' => 'arg', "more"];
+        $defaultInputActionArgs = ['some' => 'arg', 'more'];
 
         // regular action (non-container-aware)
         $data[] = [ActionReferenceInterface::class, ActionReferenceInterface::TYPE_REGULAR, $defaultInputActionArgs, $defaultInputActionArgs, $workflowContext];

@@ -71,7 +71,7 @@ abstract class AbstractActionListener extends AbstractListener
 
         foreach ($actions as $actionName => $actionCalls) {
             foreach ($actionCalls as $actionCall) {
-                $actionArguments   = $this->resolveActionArguments($actionName, $actionCall['arguments'], $event, $workflowContext);
+                $actionArguments = $this->resolveActionArguments($actionName, $actionCall['arguments'], $event, $workflowContext);
 
                 if ($scheduled) {
                     $preparedActions[] = new ScheduledAction($actionName, $actionArguments, $actionCall['offset'], $actionCall['reschedulable']);
@@ -109,8 +109,9 @@ abstract class AbstractActionListener extends AbstractListener
                     break;
                 case ActionArgumentTypes::TYPE_EXPRESSION:
                     $expressionResult = $this->actionLanguage->evaluate($argument['value'], ['event' => $event, 'workflowContext' => $workflowContext]);
+                    $isNonAssocArrayResult = is_array($expressionResult) && !ArrayUtils::isArrayAssoc($expressionResult);
                     // expression result should be scalar or non assoc Array
-                    if (!(is_null($expressionResult) || is_scalar($expressionResult) || is_array($expressionResult) && !ArrayUtils::isArrayAssoc($expressionResult))) {
+                    if (!(is_null($expressionResult) || is_scalar($expressionResult) || $isNonAssocArrayResult)) {
                         throw ActionException::actionExpressionArgumentIsMalformed($actionName, $argument['value'], $expressionResult);
                     }
                     $result[] = $expressionResult;

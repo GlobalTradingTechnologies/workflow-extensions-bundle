@@ -30,7 +30,7 @@ class ExecuteActionCommand extends Command
     /**
      * Command name
      */
-    const COMMAND_NAME = "workflow:action:execute";
+    const COMMAND_NAME = 'workflow:action:execute';
 
     /**
      * Action executor
@@ -81,31 +81,31 @@ class ExecuteActionCommand extends Command
                     'action',
                     null,
                     InputOption::VALUE_REQUIRED,
-                    "Action name should be executed"
+                    'Action name should be executed'
                 ),
                 new InputOption(
                     'arguments',
                     null,
                     InputOption::VALUE_REQUIRED,
-                    "Json-encoded list of action parameters"
+                    'Json-encoded list of action parameters'
                 ),
                 new InputOption(
                     'workflow',
                     'w',
                     InputOption::VALUE_REQUIRED,
-                    "Name of the current workflow"
+                    'Name of the current workflow'
                 ),
                 new InputOption(
                     'subjectId',
                     'sid',
                     InputOption::VALUE_REQUIRED,
-                    "Id of the workflow subject"
+                    'Id of the workflow subject'
                 ),
                 new InputOption(
                     'subjectClass',
                     null,
                     InputOption::VALUE_REQUIRED,
-                    "FQCN of the workflow subject"
+                    'FQCN of the workflow subject'
                 )
             ))
             ->setName(static::COMMAND_NAME)

@@ -14,6 +14,7 @@ namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection;
 use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Enum\ActionArgumentTypes;
 use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
+use ReflectionClass;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -98,7 +99,7 @@ class Configuration implements ConfigurationInterface
                         if (!preg_match('/^[a-z0-9_]+$/i', $actionName)) {
                             throw new InvalidConfigurationException(
                                 sprintf(
-                                    "Action name must contain only alphanumeric and underscore symbols. Please rename action '%s'",
+                                    'Action name must contain only alphanumeric and underscore symbols. Please rename action "%s"',
                                     $actionName
                                 )
                             );
@@ -106,7 +107,7 @@ class Configuration implements ConfigurationInterface
                         if (!(array_key_exists('class', $actionConfig) xor array_key_exists('service', $actionConfig))) {
                             throw new InvalidConfigurationException(
                                 sprintf(
-                                    "Please change configuration for '%s' action. It is possible to set 'class' or 'service' option, but not the both",
+                                    'Please change configuration for "%s" action. It is possible to set "class" or "service" option, but not the both',
                                     $actionName
                                 )
                             );
@@ -115,7 +116,7 @@ class Configuration implements ConfigurationInterface
                             if (!class_exists($actionConfig['class'])) {
                                 throw new InvalidConfigurationException(
                                     sprintf(
-                                        "The class '%s' configured for '%s' action does not exist",
+                                        'The class "%s" configured for "%s" action does not exist',
                                         $actionConfig['class'],
                                         $actionName
                                     )
@@ -124,7 +125,7 @@ class Configuration implements ConfigurationInterface
                             if (!method_exists($actionConfig['class'], $actionConfig['method'])) {
                                 throw new InvalidConfigurationException(
                                     sprintf(
-                                        "The class '%s' configured for '%s' action does not have '%s' method",
+                                        'The class "%s" configured for "%s" action does not have "%s" method',
                                         $actionConfig['class'],
                                         $actionName,
                                         $actionConfig['method']
@@ -235,7 +236,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                             ->scalarNode('expression')
-                                ->info("Expression to execute as a event reaction")
+                                ->info('Expression to execute as a event reaction')
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode('subject_retrieving_expression')
@@ -279,7 +280,7 @@ class Configuration implements ConfigurationInterface
                         ->beforeNormalization()
                             ->ifString()
                             ->then(function($v) {
-                                return constant(ActionArgumentTypes::class."::TYPE_".strtoupper($v));
+                                return constant(ActionArgumentTypes::class.'::TYPE_'.strtoupper($v));
                             })
                         ->end()
                     ->end()
@@ -293,7 +294,7 @@ class Configuration implements ConfigurationInterface
                         return is_scalar($v) || is_array($v) && !ArrayUtils::isArrayAssoc($v);
                     })
                     ->then(function ($v) {
-                        $type = (is_scalar($v)) ? ActionArgumentTypes::TYPE_SCALAR : ActionArgumentTypes::TYPE_ARRAY;
+                        $type = is_scalar($v) ? ActionArgumentTypes::TYPE_SCALAR : ActionArgumentTypes::TYPE_ARRAY;
                         return [
                             'type'  => $type,
                             'value' => $v
@@ -341,7 +342,7 @@ class Configuration implements ConfigurationInterface
         static $supportedTypes = null;
 
         if ($supportedTypes === null) {
-            $actionArgumentTypesRef = new \ReflectionClass(ActionArgumentTypes::class);
+            $actionArgumentTypesRef = new ReflectionClass(ActionArgumentTypes::class);
             $supportedTypes         = $actionArgumentTypesRef->getConstants();
         }
 
