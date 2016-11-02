@@ -14,6 +14,7 @@ namespace Gtt\Bundle\WorkflowExtensionsBundle\Entity\Repository;
 use Doctrine\ORM\EntityRepository;
 use Gtt\Bundle\WorkflowExtensionsBundle\Entity\ScheduledJob;
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\NonUniqueReschedulabeJobFoundException;
+use Gtt\Bundle\WorkflowExtensionsBundle\Schedule\Action\ScheduledAction;
 use JMS\JobQueueBundle\Entity\Job;
 
 /**

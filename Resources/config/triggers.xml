@@ -5,27 +5,47 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-
-        <service id="gtt.workflow.trigger.event.listener"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\TransitionTrigger\Event\TransitionTriggerListener">
-            <argument type="service" id="gtt.workflow.trigger.expression_language" />
-            <argument type="service" id="gtt.workflow.transition_applier" />
+        <service id="gtt.workflow.trigger.event.listener.abstract"
+                 abstract="true"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\AbstractListener">
+            <argument type="service" id="gtt.workflow.subject_retriever.expression_language" />
             <argument type="service" id="gtt.workflow.subject_manipulator" />
+            <argument type="service" id="workflow.registry"/>
             <argument type="service" id="logger"/>
             <tag name="monolog.logger" channel="workflow"/>
         </service>
 
-        <service id="gtt.workflow.trigger.command" class="Gtt\Bundle\WorkflowExtensionsBundle\Command\TriggerTransitionCommand">
-            <argument type="service" id="gtt.workflow.subject_manipulator" />
-            <argument type="service" id="gtt.workflow.transition_applier" />
-            <tag name="console.command" />
+        <service id="gtt.workflow.trigger.event.listener.action.abstract"
+                 abstract="true"
+                 parent="gtt.workflow.trigger.event.listener.abstract"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\AbstractActionListener">
+            <argument type="service" id="gtt.workflow.action.expression_language" />
         </service>
 
-        <service id="gtt.workflow.trigger.expression_language"
+        <service id="gtt.workflow.trigger.event.listener.action"
+                 parent="gtt.workflow.trigger.event.listener.action.abstract"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ActionListener"
+                 lazy="true">
+            <argument type="service" id="gtt.workflow.action.executor" />
+        </service>
+
+        <service id="gtt.workflow.trigger.event.listener.expression"
+                 parent="gtt.workflow.trigger.event.listener.action.abstract"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ExpressionListener"
+                 lazy="true">
+        </service>
+
+        <service id="gtt.workflow.trigger.event.listener.scheduler"
+                 parent="gtt.workflow.trigger.event.listener.action.abstract"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\SchedulerListener"
+                 lazy="true">
+            <argument type="service" id="gtt.workflow.action_scheduler" />
+        </service>
+
+        <service id="gtt.workflow.subject_retriever.expression_language"
                  class="Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage\ContainerAwareExpressionLanguage"
                  public="false">
             <argument type="service" id="service_container" />
         </service>
-
     </services>
 </container>

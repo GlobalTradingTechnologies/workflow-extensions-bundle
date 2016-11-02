@@ -9,7 +9,7 @@
  * @date 29.07.16
  */
 
-namespace Gtt\Bundle\WorkflowExtensionsBundle;
+namespace Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject;
 
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\SubjectIdRetrievingException;
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\SubjectManipulatorException;

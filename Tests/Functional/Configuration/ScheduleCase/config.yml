@@ -57,26 +57,33 @@ workflow_extensions:
             triggers:
                 event:
                     activating.event:
-                        apply:
-                            - activating
+                        actions:
+                            apply_transition:
+                                - [activating]
                         subject_retrieving_expression: 'event.getSubject()'
                     # during activation schedule sleeping
                     workflow.simple.transition.activating:
                         schedule:
-                            sleeping:
-                                offset: PT1S
+                            apply_transition:
+                                -
+                                    arguments: [sleeping]
+                                    offset: PT1S
                         subject_retrieving_expression: 'event.getSubject()'
                     # during sleeping schedule closing
                     workflow.simple.transition.sleeping:
                         schedule:
-                            closing:
-                                offset: PT1S
+                            apply_transition:
+                                -
+                                    arguments: [closing]
+                                    offset: PT1S
                         subject_retrieving_expression: 'event.getSubject()'
                     # prolongate closing for 1 sec
                     prolong.event:
                         schedule:
-                            closing:
-                                offset: PT1S
+                            apply_transition:
+                                -
+                                    arguments: [closing]
+                                    offset: PT1S
                         subject_retrieving_expression: 'event.getSubject()'
     scheduler: ~
     subject_manipulator:
