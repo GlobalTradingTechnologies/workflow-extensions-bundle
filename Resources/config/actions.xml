@@ -31,21 +31,20 @@
         </service>
 
         <service id="gtt.workflow.action.service_method.reference.prototype"
-                class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ServiceMethod"
-                abstract="true">
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ServiceMethod"
+                 abstract="true">
             <call method="setContainer">
                 <argument type="service" id="service_container" />
             </call>
         </service>
 
         <service id="gtt.workflow.action.static_method.reference.prototype"
-                class="\Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod"
-                abstract="true">
+                 class="\Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod"
+                 abstract="true">
         </service>
 
         <service id="gtt.workflow.action.expression_language"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\Action\ExpressionLanguage\ActionExpressionLanguage"
-                 public="false">
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Action\ExpressionLanguage\ActionExpressionLanguage">
             <argument type="service" id="gtt.workflow.action.registry" />
             <argument type="service" id="gtt.workflow.action.executor" />
             <argument type="service" id="service_container" />
