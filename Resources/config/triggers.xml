@@ -24,21 +24,18 @@
 
         <service id="gtt.workflow.trigger.event.listener.action"
                  parent="gtt.workflow.trigger.event.listener.action.abstract"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ActionListener"
-                 lazy="true">
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ActionListener">
             <argument type="service" id="gtt.workflow.action.executor" />
         </service>
 
         <service id="gtt.workflow.trigger.event.listener.expression"
                  parent="gtt.workflow.trigger.event.listener.action.abstract"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ExpressionListener"
-                 lazy="true">
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\ExpressionListener">
         </service>
 
         <service id="gtt.workflow.trigger.event.listener.scheduler"
                  parent="gtt.workflow.trigger.event.listener.action.abstract"
-                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\SchedulerListener"
-                 lazy="true">
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event\SchedulerListener">
             <argument type="service" id="gtt.workflow.action_scheduler" />
         </service>
 
