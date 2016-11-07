@@ -32,7 +32,7 @@
 
         <service id="gtt.workflow.action.service_method.reference.prototype"
                 class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ServiceMethod"
-                public="false">
+                abstract="true">
             <call method="setContainer">
                 <argument type="service" id="service_container" />
             </call>
@@ -40,7 +40,7 @@
 
         <service id="gtt.workflow.action.static_method.reference.prototype"
                 class="\Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod"
-                public="false">
+                abstract="true">
         </service>
 
         <service id="gtt.workflow.action.expression_language"

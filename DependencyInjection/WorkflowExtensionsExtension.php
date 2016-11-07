@@ -11,6 +11,8 @@
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection;
 
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ServiceMethod;
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -269,11 +271,15 @@ class WorkflowExtensionsExtension extends Extension
         $registryDefinition = $container->findDefinition('gtt.workflow.action.registry');
 
         foreach ($actionConfigs as $actionName => $actionConfig) {
+            // here we explicitly set parent class to decorated definition in order to fix inconsistent behavior for <= 2.7
+            // see https://github.com/symfony/symfony/issues/17353 and https://github.com/symfony/symfony/pull/15096
             if (array_key_exists('service', $actionConfig)) {
                 $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.service_method.reference.prototype');
+                $actionReferenceDefinition->setClass(ServiceMethod::class);
                 $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
             } else {
                 $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.static_method.reference.prototype');
+                $actionReferenceDefinition->setClass(StaticMethod::class);
                 $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
             }
 
