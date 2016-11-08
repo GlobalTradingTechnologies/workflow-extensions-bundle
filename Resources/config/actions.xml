@@ -10,7 +10,7 @@
     </parameters>
 
     <services>
-        <service id="gtt.workflow.action.registry" class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Registry">
+        <service id="gtt.workflow.action.registry" class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Registry" lazy="true">
             <!--Built-in system actions-->
             <argument type="collection">
                 <argument key="%gtt.workflow.action.apply_transitions.name%" type="service">
@@ -39,7 +39,7 @@
         </service>
 
         <service id="gtt.workflow.action.static_method.reference.prototype"
-                 class="\Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod"
+                 class="Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod"
                  abstract="true">
         </service>
 
