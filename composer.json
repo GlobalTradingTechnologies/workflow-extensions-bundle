@@ -12,7 +12,7 @@
     "require": {
         "php": ">=5.5.9",
         "symfony/framework-bundle": "^2.3|^3.0",
-        "fduch/workflow-bundle": "^0.1",
+        "fduch/workflow-bundle": "^0.3",
         "symfony/workflow": "@dev",
         "symfony/expression-language": "^2.3|^3.0"
     },
