@@ -29,8 +29,7 @@ Requirements
 
 Since Symfony's Workflow component requires PHP 5.5.9+ WorkflowExtensionsBundle supports PHP 5.5.9 and newer.
 
-Workflow component is integrated in Symfony 3 ecosystem starting from 3.2 version. In order to use it in applications based on Symfony 3.1 and lower you can use [fduch/workflow-bundle](https://github.com/fduch/workflow-bundle).
-Until Symfony 3.2 will be released fduch/workflow-bundle is required by WorkflowExtensionsBundle to support all the stable Symfony stacks. After that this dependency will be optional (and will be moved to `suggest` section) for old versions support.
+Workflow component is integrated in Symfony 3 ecosystem starting from 3.2 version. In order to use it in applications based on Symfony 3.1 and lower you can use [1.x version](https://github.com/GlobalTradingTechnologies/workflow-extensions-bundle/tree/1.x) of the Bundle.
 
 Besides [symfony/framework-bundle](https://github.com/symfony/framework-bundle) and [symfony/expression-language](https://github.com/symfony/expression-language) packages are required.
  
