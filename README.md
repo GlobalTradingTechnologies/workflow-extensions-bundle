@@ -1,8 +1,8 @@
 WorkflowExtensionsBundle
 ========================
 
-[![Build Status](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle.svg?branch=master)](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle)
-[![Coverage Status](https://coveralls.io/repos/github/GlobalTradingTechnologies/workflow-extensions-bundle/badge.svg?branch=master)](https://coveralls.io/github/GlobalTradingTechnologies/workflow-extensions-bundle?branch=master)
+[![Build Status](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle.svg?branch=1.x)](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle)
+[![Coverage Status](https://coveralls.io/repos/github/GlobalTradingTechnologies/workflow-extensions-bundle/badge.svg?branch=1.x)](https://coveralls.io/github/GlobalTradingTechnologies/workflow-extensions-bundle?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/version)](https://packagist.org/packages/gtt/workflow-extensions-bundle)
 [![Latest Unstable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/v/unstable)](//packagist.org/packages/gtt/workflow-extensions-bundle)
@@ -29,8 +29,7 @@ Requirements
 
 Since Symfony's Workflow component requires PHP 5.5.9+ WorkflowExtensionsBundle supports PHP 5.5.9 and newer.
 
-Workflow component is integrated in Symfony 3 ecosystem starting from 3.2 version. In order to use it in applications based on Symfony 3.1 and lower you can use [fduch/workflow-bundle](https://github.com/fduch/workflow-bundle).
-Until Symfony 3.2 will be released fduch/workflow-bundle is required by WorkflowExtensionsBundle to support all the stable Symfony stacks. After that this dependency will be optional (and will be moved to `suggest` section) for old versions support.
+Workflow component is integrated in Symfony 3 ecosystem starting from 3.2 version. This version allows you to use Symfony 3.1 and lower thanks to [fduch/workflow-bundle](https://github.com/fduch/workflow-bundle) required which backports missing (in <=3.1) functionality.
 
 Besides [symfony/framework-bundle](https://github.com/symfony/framework-bundle) and [symfony/expression-language](https://github.com/symfony/expression-language) packages are required.
  
