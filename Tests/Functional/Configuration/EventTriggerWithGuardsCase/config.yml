@@ -5,7 +5,7 @@ workflow:
     workflows:
         simple:
             marking_store:
-                type: property_accessor
+                type: multiple_state
                 arguments:
                     - status
             supports:

@@ -2,13 +2,13 @@ imports:
     - { resource: "../BaseConfig/config.yml" }
 
 services:
-    gtt.workflow.marking_store.property_accessor:
-        class: Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore
+    gtt.workflow.marking_store.single_state:
+        class: Symfony\Component\Workflow\MarkingStore\SingleStateMarkingStore
         arguments:
             - status
     gtt.workflow.marking_store.orm.marking.store:
         class: Gtt\Bundle\WorkflowExtensionsBundle\MarkingStore\OrmPersistentMarkingStore
-        arguments: ["@gtt.workflow.marking_store.property_accessor", "@doctrine"]
+        arguments: ["@gtt.workflow.marking_store.single_state", "@doctrine"]
 
 doctrine:
     dbal:
