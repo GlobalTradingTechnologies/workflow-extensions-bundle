@@ -11,7 +11,6 @@
 
 return array(
     new \Symfony\Bundle\MonologBundle\MonologBundle(),
-    new \Symfony\Bundle\WorkflowBundle\WorkflowBundle(),
     new \Gtt\Bundle\WorkflowExtensionsBundle\WorkflowExtensionsBundle(),
     new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
     new \Gtt\Bundle\WorkflowExtensionsBundle\Tests\Functional\Configuration\ScheduleCase\Fixtures\ClientBundle\ClientBundle(),

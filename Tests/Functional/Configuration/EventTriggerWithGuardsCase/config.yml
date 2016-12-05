@@ -1,7 +1,7 @@
 imports:
     - { resource: "../BaseConfig/config.yml" }
 
-workflow:
+framework:
     workflows:
         simple:
             marking_store:

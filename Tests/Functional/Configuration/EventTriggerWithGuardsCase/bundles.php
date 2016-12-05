@@ -11,6 +11,5 @@
 
 return array(
     new \Symfony\Bundle\MonologBundle\MonologBundle(),
-    new \Symfony\Bundle\WorkflowBundle\WorkflowBundle(),
     new \Gtt\Bundle\WorkflowExtensionsBundle\WorkflowExtensionsBundle()
 );
