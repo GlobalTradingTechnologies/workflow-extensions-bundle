@@ -2,8 +2,8 @@ WorkflowExtensionsBundle
 ========================
 
 [![Build Status](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle.svg?branch=1.x)](https://travis-ci.org/GlobalTradingTechnologies/workflow-extensions-bundle)
-[![Coverage Status](https://coveralls.io/repos/github/GlobalTradingTechnologies/workflow-extensions-bundle/badge.svg?branch=1.x)](https://coveralls.io/github/GlobalTradingTechnologies/workflow-extensions-bundle?branch=master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/GlobalTradingTechnologies/workflow-extensions-bundle/badge.svg?branch=1.x)](https://coveralls.io/github/GlobalTradingTechnologies/workflow-extensions-bundle?branch=1.x)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/GlobalTradingTechnologies/workflow-extensions-bundle/?branch=1.x)
 [![Latest Stable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/version)](https://packagist.org/packages/gtt/workflow-extensions-bundle)
 [![Latest Unstable Version](https://poser.pugx.org/gtt/workflow-extensions-bundle/v/unstable)](//packagist.org/packages/gtt/workflow-extensions-bundle)
 [![License](https://poser.pugx.org/gtt/workflow-extensions-bundle/license)](https://packagist.org/packages/gtt/workflow-extensions-bundle)
