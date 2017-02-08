@@ -24,13 +24,16 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider exceptionAndLogLevelProvider
      */
-    public function testUnavailabilityToPerformTransitionIsReportedByLogger(\Exception $exception, $loggerLevel)
+    public function testUnavailabilityToPerformTransitionIsReportedByLogger(\Exception $exception, $loggerLevel, $throw = true)
     {
         $transitionName  = "t1";
         $subject         = new \StdClass();
 
         $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
         $workflow->expects(self::once())->method('apply')->with($subject, $transitionName)->willThrowException($exception);
+        if ($throw) {
+            $this->setExpectedException(get_class($exception));
+        }
 
         $workflowContext = new WorkflowContext($workflow, $subject, "id");
 
@@ -49,7 +52,7 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
     {
         return [
             // workflow logic exception should trigger info-level logging
-            [new LogicException(), "info"],
+            [new LogicException(), "info", false],
             [new \Exception(), "error"]
         ];
     }
@@ -57,26 +60,30 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider transitionEnvironmentProvider
      */
-    public function testSeveralTransitionsHandledCorrectly(array $transitions = [], array $appliedTransitions = [], $cascade = false)
+    public function testSeveralTransitionsHandledCorrectly(array $transitions = [], array $transitionsToBeTriedToApply = [], $cascade = false)
     {
-        $workflowName = "w1";
         $subject = new \StdClass();
-
         $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
 
-        $appliedTransitionCount = count($appliedTransitions);
-
         $callIndex = 0;
+        $transitionsToApplyCount = 0;
         $workflow->expects(self::at($callIndex))->method('getName');
         $callIndex++;
-        foreach ($appliedTransitions as $transitionName => $applicationResult) {
+        foreach ($transitionsToBeTriedToApply as $transitionName => $applicationResult) {
             $invocationMocker = $workflow->expects(self::at($callIndex))->method('apply')->with($subject, $transitionName);
-            if ($applicationResult instanceof \Exception) {
-                $invocationMocker->willThrowException($applicationResult);
+            $transitionsToApplyCount++;
+            if (is_array($applicationResult)) {
+                $throw = $applicationResult[1];
+                $exception = $applicationResult[0];
+                $invocationMocker->willThrowException($exception);
+                if ($throw) {
+                    $this->setExpectedException(get_class($exception));
+                    break;
+                }
             }
             $callIndex++;
         }
-        $workflow->expects($this->exactly($appliedTransitionCount))->method('apply');
+        $workflow->expects($this->exactly($transitionsToApplyCount))->method('apply');
 
         $workflowContext = new WorkflowContext($workflow, $subject, "id");
 
@@ -92,10 +99,10 @@ class TransitionApplierTest extends PHPUnit_Framework_TestCase
     {
         return [
             [['t1', 't2'], ['t1' => true]],
-            [['t1', 't2'], ['t1' => new \Exception(), 't2' => true], true],
-            [['t1', 't2'], ['t1' => new \Exception(), 't2' => true], false],
-            [['t1', 't2'], ['t1' => new LogicException(), 't2' => true], true],
-            [['t1', 't2'], ['t1' => new LogicException(), 't2' => true], false],
+            [['t1', 't2'], ['t1' => [new \Exception(), true], 't2' => true], true],
+            [['t1', 't2'], ['t1' => [new \Exception(), true], 't2' => true], false],
+            [['t1', 't2'], ['t1' => [new LogicException(), false], 't2' => true], true],
+            [['t1', 't2'], ['t1' => [new LogicException(), false], 't2' => true], false],
         ];
     }
 }

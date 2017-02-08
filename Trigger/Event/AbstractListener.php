@@ -143,29 +143,34 @@ abstract class AbstractListener
     abstract protected function handleEvent($eventName, Event $event, $eventConfigForWorkflow, WorkflowContext $workflowContext);
 
     /**
-     * Allows to execute any listener callback with internal errors and exceptions caught
-     * in order to make possible next execution
+     * Allows to execute any listener callback with control of internal errors and exceptions handling.
+     * For now all the errors and exceptions are logged and rethrown.
+     * There is an ability to configure exception catching in the future in order to make possible next execution.
      *
      * @param \Closure        $closure         closure to be executed safely
      * @param string          $eventName       event name
      * @param WorkflowContext $workflowContext workflow context
      * @param string          $activity        description of the current listener activity (required for logging
      *                                         purposes)
+     *
+     * @throws Exception|Throwable in case of failure
      */
-    protected function executeSafely(\Closure $closure, $eventName, WorkflowContext $workflowContext, $activity = 'react')
+    protected function execute(\Closure $closure, $eventName, WorkflowContext $workflowContext, $activity = 'react')
     {
         try {
             call_user_func($closure);
         } catch (Exception $e) {
             $this->logger->error(
-                sprintf('Cannot %s on event "%s". Details: %s', $activity, $eventName, $e->getMessage()),
+                sprintf('Cannot %s on event "%s" due to exception. Details: %s', $activity, $eventName, $e->getMessage()),
                 $workflowContext->getLoggerContext()
             );
+            throw $e;
         } catch (Throwable $e) {
             $this->logger->critical(
-                sprintf('Cannot %s on event "%s". Details: %s', $activity, $eventName, $e->getMessage()),
+                sprintf('Cannot %s on event "%s" due to error. Details: %s', $activity, $eventName, $e->getMessage()),
                 $workflowContext->getLoggerContext()
             );
+            throw $e;
         }
     }
 
@@ -200,7 +205,7 @@ abstract class AbstractListener
             }
         } catch (Exception $e) {
             $error = sprintf(
-                "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Error: '%s'. Please check retrieving expression",
+                "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Exception: '%s'. Please check retrieving expression",
                 $eventName,
                 $subjectRetrievingExpression,
                 $e->getMessage()
