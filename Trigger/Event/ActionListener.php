@@ -79,7 +79,7 @@ class ActionListener extends AbstractActionListener
         $actions = $this->prepareActions($actions, $event, $workflowContext);
 
         foreach ($actions as $action) {
-            $this->executeSafely(
+            $this->execute(
                 function () use ($workflowContext, $action) {
                     $this->actionExecutor->execute($workflowContext, $action->getName(), $action->getArguments());
                 },

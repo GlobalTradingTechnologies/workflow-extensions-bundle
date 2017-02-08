@@ -80,7 +80,7 @@ class SchedulerListener extends AbstractActionListener
         $actions = $this->prepareActions($actions, $event, $workflowContext, true);
 
         foreach ($actions as $scheduledAction) {
-            $this->executeSafely(
+            $this->execute(
                 function () use ($workflowContext, $scheduledAction) {
                     $this->actionScheduler->scheduleAction($workflowContext, $scheduledAction);
                 },
