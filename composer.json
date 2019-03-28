@@ -34,8 +34,10 @@
         "doctrine/doctrine-bundle": "Required for OrmPersistentMarkingStore usage"
     },
     "autoload": {
-        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\": "" },
-        "exclude-from-classmap": ["/Tests/"]
+        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\": "src" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Gtt\\Bundle\\WorkflowExtensionsBundle\\": "tests" }
     },
     "extra": {
         "branch-alias": {

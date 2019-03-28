@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit colors="true" bootstrap="Tests/bootstrap.php">
+<phpunit colors="true" bootstrap="tests/bootstrap.php">
     <testsuites>
         <testsuite name="Gtt Workflow Extensions test suite">
-            <directory>./Tests</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>.</directory>
+            <directory>src</directory>
             <exclude>
                 <directory>./Resources</directory>
                 <directory>./Tests</directory>
