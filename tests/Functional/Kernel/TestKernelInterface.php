@@ -8,6 +8,7 @@
  * Author: Alex Medvedev
  * Date: 16.05.12
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional\Kernel;
 
@@ -21,16 +22,22 @@ interface TestKernelInterface
     /**
      * Sets Kernel configuration
      *
-     * @param string $appName name of test application kernel
-     * @param string $testCase directory name where kernel configs are stored
-     * @param string $configDir path to directory with test cases configurations
-     * @param string $rootConfig name of the application config file
-     * @param bool|string $rootDir path to root directory of test application. Can be unset
-     * due to backward compatibility.
+     * @param string      $appName    name of test application kernel
+     * @param string      $testCase   directory name where kernel configs are stored
+     * @param string      $configDir  path to directory with test cases configurations
+     * @param string      $rootConfig name of the application config file
+     * @param string|null $rootDir    path to root directory of test application. Can be unset
+     *                                due to backward compatibility.
      *
      * @return void
      */
-    public function setTestKernelConfiguration($appName, $testCase, $configDir, $rootConfig, $rootDir = false);
+    public function setTestKernelConfiguration(
+        string $appName,
+        string $testCase,
+        string $configDir,
+        string $rootConfig,
+        string $rootDir = null
+    ): void;
 
     /**
      * Returns temporary application folder that is used to store cache, logs of test kernel.
@@ -42,5 +49,5 @@ interface TestKernelInterface
      *
      * @return string
      */
-    public function getTempAppDir();
+    public function getTempAppDir(): string;
 }

@@ -9,6 +9,7 @@
  *
  * Date: 20.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Enum;
 
@@ -22,16 +23,16 @@ class ActionArgumentTypes
     /**
      * Scalar value
      */
-    const TYPE_SCALAR = 'scalar';
+    public const TYPE_SCALAR = 'scalar';
 
     /**
      * Expression that will be executed and result will be treated as action argument
      * Result must be scalar or non-associate array
      */
-    const TYPE_EXPRESSION = 'expression';
+    public const TYPE_EXPRESSION = 'expression';
 
     /**
      * Non-associative array of arguments of other types
      */
-    const TYPE_ARRAY = 'array';
+    public const TYPE_ARRAY = 'array';
 }

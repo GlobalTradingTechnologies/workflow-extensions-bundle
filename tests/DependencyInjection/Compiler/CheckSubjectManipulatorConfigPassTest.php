@@ -8,20 +8,22 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * Date: 30.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Compiler;
 
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-class CheckSubjectManipulatorConfigPassTest extends \PHPUnit_Framework_TestCase
+class CheckSubjectManipulatorConfigPassTest extends TestCase
 {
-    /**
-     * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     */
-    public function testThrowingExceptionIfTargetSubjectClassesNotConfigured()
+    public function testThrowingExceptionIfTargetSubjectClassesNotConfigured(): void
     {
+        $this->expectException(InvalidConfigurationException::class);
+
         $container = new ContainerBuilder();
         $container->addCompilerPass(new CheckSubjectManipulatorConfigPass());
 
@@ -37,7 +39,7 @@ class CheckSubjectManipulatorConfigPassTest extends \PHPUnit_Framework_TestCase
                 '\Some\Target\Class'
             ]
         );
-        $container->setDefinition(CheckSubjectManipulatorConfigPass::WORKFLOW_REGISTRY_ID, $registryDefinition);
+        $container->setDefinition('workflow.registry', $registryDefinition);
 
         $container->setParameter('gtt.workflow.subject_classes_with_subject_from_domain', ['\Some\Target\AnotherClass']);
         $container->setParameter('gtt.workflow.workflows_with_scheduling', [$workflowName]);

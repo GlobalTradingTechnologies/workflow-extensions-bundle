@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 02.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Exception;
 

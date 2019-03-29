@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 28.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional;
 
@@ -42,11 +43,11 @@ class ScheduleCaseTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->initApplication();
 
-        $this->initDbSchema($this->client->getContainer());
+        $this->initDbSchema();
 
         // load fixtures
         $fixturesBundle = new ClientBundle();
@@ -54,7 +55,7 @@ class ScheduleCaseTest extends TestCase
         $this->loadFixtures($this->client->getContainer(), $fixturesPath);
     }
 
-    public function initApplication()
+    public function initApplication(): Application
     {
         if (!class_exists('PDO') || !in_array('sqlite', \PDO::getAvailableDrivers())) {
             self::markTestSkipped('This test requires SQLite support in your environment');
@@ -85,10 +86,9 @@ class ScheduleCaseTest extends TestCase
     }
 
     /**
-     * @param ContainerInterface $container
      * @param string $em
      */
-    protected function initDbSchema(ContainerInterface $container, $em = 'default')
+    protected function initDbSchema($em = 'default'): void
     {
         $schemaCreateCommand = new CreateSchemaDoctrineCommand();
         $this->runConsoleCommand($schemaCreateCommand, ["--em" => $em]);
@@ -99,10 +99,15 @@ class ScheduleCaseTest extends TestCase
      * @param array|string|false $fixturesPath
      * @param string $em
      * @param bool|true $append
-     * @return array
+     *
+     * @return void
      */
-    protected function loadFixtures(ContainerInterface $container, $fixturesPath = false, $em = 'default', $append = true)
-    {
+    protected function loadFixtures(
+        ContainerInterface $container,
+        $fixturesPath = false,
+        string $em = 'default',
+        bool $append = true
+    ): void {
         $fixtureLoadCommand = new LoadDataFixturesDoctrineCommand();
         $fixtureLoadCommand->setContainer($container);
         $params = array(
@@ -120,11 +125,13 @@ class ScheduleCaseTest extends TestCase
      * @large
      * @group functional
      */
-    public function testScheduleWorks()
+    public function testScheduleWorks(): void
     {
         $container = $this->client->getContainer();
         /** @var EventDispatcherInterface $eventDispatcher */
         $eventDispatcher = $container->get('event_dispatcher');
+
+        $_SERVER['SYMFONY_CONSOLE_FILE'] = $container->getParameter('kernel.root_dir') . DIRECTORY_SEPARATOR . 'console';
 
         /** @var EntityManager $clientEm */
         $clientEm   = $container->get("doctrine")->getManagerForClass(Client::class);
@@ -148,7 +155,7 @@ class ScheduleCaseTest extends TestCase
 
         // sleep for a while (in order to execute scheduler in the time when closing transition should be applied without prolong.event fired)
         // and run scheduler with 1-sec runtime to check that closed transition is not executed due to prolongation
-        usleep(0.5*1e6);
+        usleep(500000);
         $this->runScheduler(1);
         $clientEm->refresh($subject);
         self::assertEquals('sleeping', $subject->getStatus());
@@ -174,7 +181,7 @@ class ScheduleCaseTest extends TestCase
         );
     }
 
-    private function runConsoleCommand(Command $command, array $params = [])
+    private function runConsoleCommand(Command $command, array $params = []): int
     {
         $command->setApplication($this->app);
         // use CommandTester to simple command running

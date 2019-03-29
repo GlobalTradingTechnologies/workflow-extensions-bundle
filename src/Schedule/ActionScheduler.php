@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 28.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Schedule;
 
@@ -57,7 +58,7 @@ class ActionScheduler
      * @param WorkflowContext $workflowContext workflow context
      * @param ScheduledAction $scheduledAction scheduled action
      */
-    public function scheduleAction(WorkflowContext $workflowContext, ScheduledAction $scheduledAction)
+    public function scheduleAction(WorkflowContext $workflowContext, ScheduledAction $scheduledAction): void
     {
         /** @var ScheduledJobRepository $scheduledJobRepository */
         $scheduledJobRepository = $this->em->getRepository(ScheduledJob::class);
@@ -93,8 +94,11 @@ class ActionScheduler
      * @param Job             $jobToSchedule   job to schedule
      * @param WorkflowContext $workflowContext workflow context
      */
-    private function scheduleActionJob(ScheduledAction $scheduledAction, Job $jobToSchedule, WorkflowContext $workflowContext)
-    {
+    private function scheduleActionJob(
+        ScheduledAction $scheduledAction,
+        Job $jobToSchedule,
+        WorkflowContext $workflowContext
+    ): void {
         $executionDate = $this->getActionExecutionDate($scheduledAction);
         $jobToSchedule->setExecuteAfter($executionDate);
 
@@ -122,8 +126,11 @@ class ActionScheduler
      * @param ScheduledJob    $scheduledJob    scheduled job for action
      * @param WorkflowContext $workflowContext workflow context
      */
-    private function rescheduleActionJob(ScheduledAction $scheduledAction, ScheduledJob $scheduledJob, WorkflowContext $workflowContext)
-    {
+    private function rescheduleActionJob(
+        ScheduledAction $scheduledAction,
+        ScheduledJob $scheduledJob,
+        WorkflowContext $workflowContext
+    ): void {
         $actionJob = $scheduledJob->getJob();
         $actionJob->setExecuteAfter($this->getActionExecutionDate($scheduledAction));
 
@@ -147,7 +154,7 @@ class ActionScheduler
      *
      * @return \DateTime
      */
-    private function getActionExecutionDate(ScheduledAction $scheduledAction)
+    private function getActionExecutionDate(ScheduledAction $scheduledAction): \DateTime
     {
         $executionDate = Carbon::now();
         $executionDate->add($scheduledAction->getOffset());

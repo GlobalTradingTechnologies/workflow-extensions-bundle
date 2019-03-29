@@ -8,10 +8,14 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 18.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Guard;
 
+use Gtt\Bundle\WorkflowExtensionsBundle\Exception\UnsupportedGuardEventException;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Event\GuardEvent;
@@ -19,27 +23,25 @@ use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Workflow;
 
-class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
+class ExpressionGuardTest extends TestCase
 {
-    /**
-     * @expectedException \Gtt\Bundle\WorkflowExtensionsBundle\Exception\UnsupportedGuardEventException
-     */
-    public function testHandlingUnsupportedEventsTriggersException()
+    public function testHandlingUnsupportedEventsTriggersException(): void
     {
+        $this->expectException(UnsupportedGuardEventException::class);
         $guard = new ExpressionGuard(
-            $this->getMock(ExpressionLanguage::class),
+            $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock(),
             $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
-            $this->getMock(Registry::class),
-            $this->getMock(LoggerInterface::class)
+            $this->getMockBuilder(Registry::class)->disableOriginalConstructor()->getMock(),
+            $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock()
         );
         $event = $this->createMockedEvent();
 
         $guard->guardTransition($event, "ghost_event");
     }
 
-    public function testGuardExpressionFailuresAreReportedByLogger()
+    public function testGuardExpressionFailuresAreReportedByLogger(): void
     {
-        $logger = $this->getMock(LoggerInterface::class);
+        $logger = $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass();
         $logger->expects(self::once())->method('error');
 
         $invalidExpression = "expression";
@@ -61,9 +63,9 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testGuardExpressionFailuresDoNotBlocksTransition()
+    public function testGuardExpressionFailuresDoNotBlocksTransition(): void
     {
-        $logger = $this->getMock(LoggerInterface::class);
+        $logger = $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass();
         $logger->expects(self::once())->method('error');
 
         $invalidExpression = "expression";
@@ -87,12 +89,16 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider expressionProvider
      */
-    public function testValidExpressionAllowsOrBlocksTransitionWithLogReport($expression, $blockTransition, $convertToBoolean = false)
-    {
-        $logger = $this->getMock(LoggerInterface::class);
+    public function testValidExpressionAllowsOrBlocksTransitionWithLogReport(
+        string $expression,
+        $expressionResult,
+        bool $blockTransition,
+        bool $convertToBoolean = false
+    ): void {
+        $logger = $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass();
 
         $language = $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock();
-        $language->expects(self::once())->method("evaluate")->with($expression)->willReturn($blockTransition);
+        $language->expects(self::once())->method("evaluate")->with($expression)->willReturn($expressionResult);
 
         $guard = new ExpressionGuard(
             $language,
@@ -122,34 +128,41 @@ class ExpressionGuardTest extends \PHPUnit_Framework_TestCase
         $guard->guardTransition($event ,"eventName");
     }
 
-    public function expressionProvider()
+    public function expressionProvider(): array
     {
         return [
-            ["boolenFalseExpression", false],
-            ["boolenTrueExpression", true],
+            ["boolenFalseExpression", false, false],
+            ["boolenTrueExpression", true, true],
             // convertations to boolean
-            ["convertableToTrueExpression", "1", true],
-            ["convertableToFalseExpression", "0", true]
+            ["convertableToTrueExpression", "1", true, true],
+            ["convertableToFalseExpression", "0", false, true],
+            ["convertableToTrueExpression", 1, true, true],
+            ["convertableToFalseExpression", 0, false, true],
         ];
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|Registry
+     * @return MockObject|Registry
      */
-    private function prepareValidWorkflowRegistryMock()
+    private function prepareValidWorkflowRegistryMock(): Registry
     {
-        $workflow = $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock();
+        $workflow = $this->getMockBuilder(Workflow::class)
+                         ->setMethods(['getName'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
         $workflow->expects(self::once())->method('getName')->willReturn('test');
-        $workflowRegistry = $this->getMock(Registry::class);
+        $workflowRegistry = $this->getMockBuilder(Registry::class)
+                                 ->setMethods(['get'])
+                                 ->getMockForAbstractClass();
         $workflowRegistry->expects(self::once())->method('get')->willReturn($workflow);
 
         return $workflowRegistry;
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @return GuardEvent|MockObject
      */
-    private function createMockedEvent()
+    private function createMockedEvent(): GuardEvent
     {
         $mock = $this->getMockBuilder(GuardEvent::class)
                     ->setMethods(['getSubject', 'setBlocked', 'getTransition'])

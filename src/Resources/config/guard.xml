@@ -5,7 +5,9 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="gtt.workflow.guard" class="Gtt\Bundle\WorkflowExtensionsBundle\Guard\ExpressionGuard">
+        <defaults public="false" />
+
+        <service id="Gtt\Bundle\WorkflowExtensionsBundle\Guard\ExpressionGuard">
             <argument type="service" id="gtt.workflow.guard.expression_language" />
             <argument type="service" id="gtt.workflow.subject_manipulator" />
             <argument type="service" id="workflow.registry" />
@@ -16,7 +18,7 @@
         <service id="gtt.workflow.guard.expression_language"
                  class="Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage\ContainerAwareExpressionLanguage"
                  public="false">
-            <argument type="service" id="service_container" />
+            <argument type="service" id="gtt.workflow.context_container" />
         </service>
     </services>
 </container>

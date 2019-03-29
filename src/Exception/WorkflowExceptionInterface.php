@@ -8,13 +8,16 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Exception;
+
+use Throwable;
 
 /**
  * Base bundle exception marker
  */
-interface WorkflowExceptionInterface
+interface WorkflowExceptionInterface extends Throwable
 {
 
 }

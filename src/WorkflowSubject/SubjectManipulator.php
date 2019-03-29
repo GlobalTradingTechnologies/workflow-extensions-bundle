@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject;
 
@@ -54,8 +55,11 @@ class SubjectManipulator
      *
      * @throws SubjectManipulatorException
      */
-    public function addSupportedSubject($subjectClass, $idFromSubjectExpression, $subjectFromDomainExpression = null)
-    {
+    public function addSupportedSubject(
+        string $subjectClass,
+        string $idFromSubjectExpression,
+        string $subjectFromDomainExpression = null
+    ): void {
         if (isset($this->supportedSubjectsConfig[$subjectClass])) {
             throw SubjectManipulatorException::subjectConfigIsAlreadySet($subjectClass);
         }
@@ -76,7 +80,7 @@ class SubjectManipulator
      *
      * @throws SubjectRetrievingFromDomainException
      */
-    public function getSubjectFromDomain($subjectClass, $subjectId)
+    public function getSubjectFromDomain(string $subjectClass, $subjectId)
     {
         $subjectClass = ltrim($subjectClass, "\\");
         if (!array_key_exists($subjectClass, $this->supportedSubjectsConfig) ||

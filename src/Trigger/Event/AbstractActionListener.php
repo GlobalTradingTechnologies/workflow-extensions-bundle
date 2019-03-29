@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -49,8 +50,8 @@ abstract class AbstractActionListener extends AbstractListener
         SubjectManipulator $subjectManipulator,
         Registry $workflowRegistry,
         LoggerInterface $logger,
-        ExpressionLanguage $actionLanguage)
-    {
+        ExpressionLanguage $actionLanguage
+    ) {
         parent::__construct($subjectRetrieverLanguage, $subjectManipulator, $workflowRegistry, $logger);
         $this->actionLanguage = $actionLanguage;
     }
@@ -65,8 +66,12 @@ abstract class AbstractActionListener extends AbstractListener
      *
      * @return ScheduledAction[]|Action[]
      */
-    protected function prepareActions(array $actions = [], Event $event, WorkflowContext $workflowContext, $scheduled = false)
-    {
+    protected function prepareActions(
+        array $actions,
+        Event $event,
+        WorkflowContext $workflowContext,
+        bool $scheduled = false
+    ): array {
         $preparedActions = [];
 
         foreach ($actions as $actionName => $actionCalls) {
@@ -99,8 +104,12 @@ abstract class AbstractActionListener extends AbstractListener
      *
      * @return array
      */
-    private function resolveActionArguments($actionName, array $arguments = [], Event $event, WorkflowContext $workflowContext)
-    {
+    private function resolveActionArguments(
+        $actionName,
+        array $arguments,
+        Event $event,
+        WorkflowContext $workflowContext
+    ): array {
         $result = [];
         foreach ($arguments as $argument) {
             switch ($argument['type']) {
@@ -111,7 +120,7 @@ abstract class AbstractActionListener extends AbstractListener
                     $expressionResult = $this->actionLanguage->evaluate($argument['value'], ['event' => $event, 'workflowContext' => $workflowContext]);
                     $isNonAssocArrayResult = is_array($expressionResult) && !ArrayUtils::isArrayAssoc($expressionResult);
                     // expression result should be scalar or non assoc Array
-                    if (!(is_null($expressionResult) || is_scalar($expressionResult) || $isNonAssocArrayResult)) {
+                    if (!($expressionResult === null || \is_scalar($expressionResult) || $isNonAssocArrayResult)) {
                         throw ActionException::actionExpressionArgumentIsMalformed($actionName, $argument['value'], $expressionResult);
                     }
                     $result[] = $expressionResult;

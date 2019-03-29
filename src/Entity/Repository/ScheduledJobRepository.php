@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 01.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Entity\Repository;
 
@@ -57,7 +58,7 @@ QUERY;
             return null;
         }
 
-        if (count($scheduledJobsToReschedule) > 1) {
+        if (\count($scheduledJobsToReschedule) > 1) {
             // since there is normally only one scheduled pending/new job here
             // (because an attempt to schedule duplicate job raises rescheduling of the first one)
             // we throwing exception in case of several results here

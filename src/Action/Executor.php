@@ -9,13 +9,14 @@
  *
  * Date: 23.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
 
 use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ActionReferenceInterface;
+use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ContainerAwareInterface;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Action executor
@@ -59,7 +60,7 @@ class Executor
      *
      * @return mixed
      */
-    public function execute(WorkflowContext $workflowContext, $actionName, array $args = [])
+    public function execute(WorkflowContext $workflowContext, string $actionName, array $args = [])
     {
         $actionReference = $this->registry->get($actionName);
 

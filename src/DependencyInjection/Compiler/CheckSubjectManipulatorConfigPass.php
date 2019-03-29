@@ -23,26 +23,21 @@ use Symfony\Component\DependencyInjection\Reference;
 class CheckSubjectManipulatorConfigPass implements CompilerPassInterface
 {
     /**
-     * Workflow registry definition id
-     */
-    const WORKFLOW_REGISTRY_ID= 'workflow.registry';
-
-    /**
      * Workflow id prefix used in main workflow bundle
      */
-    const WORKFLOW_ID_PREFIX = 'workflow.';
+    public const WORKFLOW_ID_PREFIX = 'workflow.';
 
     /**
      * Name of the method used to register workflows in registry
      */
-    const WORKFLOW_REGISTRY_ADD_WORKFLOW_METHOD_NAME = "add";
+    public const WORKFLOW_REGISTRY_ADD_WORKFLOW_METHOD_NAME = "add";
 
     /**
      * {@inheritdoc}
      */
     public function process(ContainerBuilder $container)
     {
-        if (false === $container->hasDefinition(static::WORKFLOW_REGISTRY_ID)) {
+        if (false === $container->hasDefinition('workflow.registry')) {
             return;
         }
 
@@ -53,11 +48,9 @@ class CheckSubjectManipulatorConfigPass implements CompilerPassInterface
         $subjectClassesWithSubjectFromDomain = $container->getParameter('gtt.workflow.subject_classes_with_subject_from_domain');
         $workflowsWithScheduling             = $container->getParameter('gtt.workflow.workflows_with_scheduling');
 
-        $registryDefinition = $container->getDefinition(self::WORKFLOW_REGISTRY_ID);
-        foreach ($registryDefinition->getMethodCalls() as $call) {
-            if ($call[0] === self::WORKFLOW_REGISTRY_ADD_WORKFLOW_METHOD_NAME) {
-                $callArgs = $call[1];
-
+        $registryDefinition = $container->getDefinition('workflow.registry');
+        foreach ($registryDefinition->getMethodCalls() as [$call, $callArgs]) {
+            if ($call === self::WORKFLOW_REGISTRY_ADD_WORKFLOW_METHOD_NAME) {
                 if (count($callArgs) !== 2 || !$callArgs[0] instanceof Reference || !is_string($callArgs[1])) {
                     throw new RuntimeException(
                         sprintf(
@@ -68,8 +61,7 @@ class CheckSubjectManipulatorConfigPass implements CompilerPassInterface
                 }
 
                 /** @var Reference $workflowReference */
-                $workflowReference      = $callArgs[0];
-                $workflowSupportedClass = $callArgs[1];
+                [$workflowReference, $workflowSupportedClass] = $callArgs;
 
                 $workflowIdWithPrefix =  (string) $workflowReference;
                 if (strpos($workflowIdWithPrefix, self::WORKFLOW_ID_PREFIX) !== 0) {
@@ -83,8 +75,8 @@ class CheckSubjectManipulatorConfigPass implements CompilerPassInterface
 
                 $workflowId = substr($workflowIdWithPrefix, strlen(self::WORKFLOW_ID_PREFIX));
 
-                if (in_array($workflowId, $workflowsWithScheduling) &&
-                    !in_array(ltrim($workflowSupportedClass, "\\"), $subjectClassesWithSubjectFromDomain)) {
+                if (\in_array($workflowId, $workflowsWithScheduling) &&
+                    !\in_array(ltrim($workflowSupportedClass, "\\"), $subjectClassesWithSubjectFromDomain)) {
                     throw new InvalidConfigurationException(
                         sprintf(
                             'Workflow "%s" configured to use scheduler so all the supported subject classes for it'.

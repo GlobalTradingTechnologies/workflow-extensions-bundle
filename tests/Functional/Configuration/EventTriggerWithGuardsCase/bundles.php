@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 return array(
     new \Symfony\Bundle\MonologBundle\MonologBundle(),

@@ -8,11 +8,12 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 03.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Exception;
 
-use Exception;
 use JMS\JobQueueBundle\Entity\Job;
+use Throwable;
 
 /**
  * Exception for cases whe several reschedulable jobs for workflow transition and subject found
@@ -25,9 +26,9 @@ class NonUniqueReschedulabeJobFoundException extends \RuntimeException implement
      * @param Job            $originalJob duplicated job
      * @param array          $jobIds      list of ids of reschedulable jms jobs
      * @param int            $code        exception code
-     * @param Exception|null $previous    previous exception
+     * @param Throwable|null $previous    previous exception
      */
-    public function __construct(Job $originalJob, array $jobIds, $code = 0, Exception $previous = null)
+    public function __construct(Job $originalJob, array $jobIds, int $code = 0, Throwable $previous = null)
     {
         $message = sprintf(
             "There are several scheduled '%s' jobs (id's: '%s') available for rescheduling found for command '%s' with args '%s'",

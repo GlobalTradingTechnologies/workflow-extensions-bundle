@@ -16,7 +16,7 @@ doctrine:
         connections:
             default:
                 driver:   pdo_sqlite
-                path:     %kernel.cache_dir%/database.sqlite
+                path:     "%kernel.cache_dir%/database.sqlite"
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         naming_strategy: doctrine.orm.naming_strategy.underscore
@@ -25,6 +25,7 @@ doctrine:
 framework:
     workflows:
         simple:
+            type: workflow
             marking_store:
                 service: gtt.workflow.marking_store.orm.marking.store
             supports:
@@ -89,3 +90,5 @@ workflow_extensions:
     subject_manipulator:
         Gtt\Bundle\WorkflowExtensionsBundle\Functional\Configuration\ScheduleCase\Fixtures\ClientBundle\Entity\Client:
             subject_from_domain: "container.get('doctrine').getManagerForClass(subjectClass).find(subjectClass, subjectId)"
+    context:
+        doctrine: ~

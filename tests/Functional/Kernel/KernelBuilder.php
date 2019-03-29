@@ -8,6 +8,7 @@
  * Author: Alex Medvedev
  * Date: 15.05.12
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional\Kernel;
 
@@ -82,8 +83,9 @@ class KernelBuilder
                 $options['app_name'],
                 $options['test_case'],
                 $options['config_dir'],
-                isset($options['root_config']) ? $options['root_config'] : 'config.yml',
-                isset($options['root_dir']) ? $options['root_dir'] : false);
+                $options['root_config'] ?? 'config.yml',
+                $options['root_dir'] ?? null
+            );
         }
 
         return $kernel;

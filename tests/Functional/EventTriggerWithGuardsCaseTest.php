@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional;
 
@@ -27,11 +28,11 @@ class EventTriggerWithGuardsCaseTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
-        $this->client = $this->createClient(
+        $this->client = self::createClient(
             array(
                 "app_name" => "EventTriggerWithGuardsCaseTest",
                 "test_case" => "EventTriggerWithGuardsCase",
@@ -46,7 +47,7 @@ class EventTriggerWithGuardsCaseTest extends TestCase
     /**
      * @group functional
      */
-    public function testSimple()
+    public function testSimple(): void
     {
         $container = $this->client->getContainer();
         /** @var EventDispatcherInterface $eventDispatcher */

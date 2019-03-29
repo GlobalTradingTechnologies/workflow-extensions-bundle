@@ -9,6 +9,7 @@
  *
  * Date: 01.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle;
 
@@ -65,7 +66,7 @@ class WorkflowContext
     /**
      * @return Workflow
      */
-    public function getWorkflow()
+    public function getWorkflow(): Workflow
     {
         return $this->workflow;
     }
@@ -91,7 +92,7 @@ class WorkflowContext
      *
      * @return array
      */
-    public function getLoggerContext()
+    public function getLoggerContext(): array
     {
         return [
             'workflow' => $this->workflow->getName(),

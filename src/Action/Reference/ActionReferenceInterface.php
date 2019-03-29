@@ -22,12 +22,12 @@ interface ActionReferenceInterface
     /**
      * Base default action type
      */
-    const TYPE_REGULAR = "regular";
+    public const TYPE_REGULAR = "regular";
 
     /**
      * Action type requires WorkflowContext instance as first argument in arguments list
      */
-    const TYPE_WORKFLOW = "workflow";
+    public const TYPE_WORKFLOW = "workflow";
 
     /**
      * Returns action type
@@ -36,7 +36,7 @@ interface ActionReferenceInterface
      *
      * @return string
      */
-    public function getType();
+    public function getType(): string;
 
     /**
      * Invokes action

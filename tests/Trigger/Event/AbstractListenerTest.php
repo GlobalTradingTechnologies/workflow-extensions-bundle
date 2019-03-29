@@ -8,17 +8,15 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 14.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
-use Gtt\Bundle\WorkflowExtensionsBundle\Schedule\ScheduledTransition;
-use Gtt\Bundle\WorkflowExtensionsBundle\Schedule\TransitionScheduler;
-use Gtt\Bundle\WorkflowExtensionsBundle\TestCase;
-use Gtt\Bundle\WorkflowExtensionsBundle\TransitionApplier;
+use Gtt\Bundle\WorkflowExtensionsBundle\Exception\UnsupportedTriggerEventException;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\Event;
@@ -26,13 +24,11 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
 
-class AbstractListenerTest extends PHPUnit_Framework_TestCase
+class AbstractListenerTest extends TestCase
 {
-    /**
-     * @expectedException \Gtt\Bundle\WorkflowExtensionsBundle\Exception\UnsupportedTriggerEventException
-     */
-    public function testHandlingUnsupportedEventsTriggersException()
+    public function testHandlingUnsupportedEventsTriggersException(): void
     {
+        $this->expectException(UnsupportedTriggerEventException::class);
         /** @var AbstractListener $listener */
         $listener = self::getMockForAbstractClass(AbstractListener::class, [], "", false);
         $listener->dispatchEvent(new Event(), "ghost_event");
@@ -40,10 +36,10 @@ class AbstractListenerTest extends PHPUnit_Framework_TestCase
 
     public function testUnretrievableSubjectIsReportedByLogger()
     {
-        $logger = $this->getMock(LoggerInterface::class);
+        $logger = $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass();
         $logger->expects(self::once())->method('error');
 
-        list($event, $expression, $language) = $this->getEventExpressionAndLanguage(true);
+        [$event, $expression, $language] = $this->getEventExpressionAndLanguage(true);
 
         /** @var AbstractListener $listener */
         $listener = self::getMockForAbstractClass(
@@ -63,24 +59,24 @@ class AbstractListenerTest extends PHPUnit_Framework_TestCase
         $listener->dispatchEvent($event, "eventName");
     }
 
-    public function testSupportedEventIsHandled()
+    public function testSupportedEventIsHandled(): void
     {
-        list($event, $expression, $language) = $this->getEventExpressionAndLanguage();
+        [$event, $expression, $language] = $this->getEventExpressionAndLanguage();
         $eventName = "eventName";
 
-        $workflowRegistry = $this->getMock(Registry::class);
+        $workflowRegistry = $this->getMockBuilder(Registry::class)->disableOriginalConstructor()->getMock();
         $workflowRegistry->expects(self::once())->method('get')->willReturn(
             $this->getMockBuilder(Workflow::class)->disableOriginalConstructor()->getMock()
         );
 
-        /** @var AbstractListener|PHPUnit_Framework_MockObject_MockObject $listener */
+        /** @var AbstractListener|MockObject $listener */
         $listener = self::getMockForAbstractClass(
             AbstractListener::class,
             [
                 $language,
                 $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
                 $workflowRegistry,
-                $this->getMock(LoggerInterface::class)
+                $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass()
             ]
         );
 
@@ -106,7 +102,7 @@ class AbstractListenerTest extends PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    private function getEventExpressionAndLanguage($expressionEvaluationShouldThrowException = false)
+    private function getEventExpressionAndLanguage(bool $expressionEvaluationShouldThrowException = false): array
     {
         $subject = new \StdClass();
         $event = new Event();

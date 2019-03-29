@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 27.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Entity;
 
@@ -63,7 +64,7 @@ class ScheduledJob
      * @param Job     $transitionTriggerJob transition trigger job
      * @param boolean $reschedulable        reschedulable or not
      */
-    public function __construct(Job $transitionTriggerJob, $reschedulable = true)
+    public function __construct(Job $transitionTriggerJob, bool $reschedulable = true)
     {
         $this->reschedulable = $reschedulable;
         $this->job           = $transitionTriggerJob;
@@ -85,7 +86,7 @@ class ScheduledJob
      *
      * @return boolean
      */
-    public function isReschedulable()
+    public function isReschedulable(): bool
     {
         return $this->reschedulable;
     }
@@ -95,7 +96,7 @@ class ScheduledJob
      *
      * @param boolean $reschedulable
      */
-    public function setReschedulable($reschedulable = true)
+    public function setReschedulable(bool $reschedulable = true): void
     {
         $this->reschedulable = $reschedulable;
     }
@@ -105,7 +106,7 @@ class ScheduledJob
      *
      * @return Job
      */
-    public function getJob()
+    public function getJob(): Job
     {
         return $this->job;
     }
@@ -114,13 +115,9 @@ class ScheduledJob
      * Sets Job
      *
      * @param Job $job Related jms job
-     *
-     * @return ScheduledJob
      */
-    public function setJob($job)
+    public function setJob(Job $job): void
     {
         $this->job = $job;
-
-        return $this;
     }
 }

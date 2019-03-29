@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 03.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Actions;
 
@@ -45,7 +46,7 @@ class TransitionApplier
      * @param WorkflowContext $workflowContext workflow context
      * @param string          $transition      transition to be applied
      */
-    public function applyTransition(WorkflowContext $workflowContext, $transition)
+    public function applyTransition(WorkflowContext $workflowContext, string $transition): void
     {
         $this->applyTransitions($workflowContext, [$transition]);
     }
@@ -58,7 +59,7 @@ class TransitionApplier
      * @param bool            $cascade         if this flag is set all the available transitions should be applied (it
      *                                         may be cascade); otherwise the first applied transition breaks execution
      */
-    public function applyTransitions(WorkflowContext $workflowContext, array $transitions = [], $cascade = false)
+    public function applyTransitions(WorkflowContext $workflowContext, array $transitions = [], bool $cascade = false): void
     {
         if (!$transitions) {
             return;

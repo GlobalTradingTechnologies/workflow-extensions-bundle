@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 03.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Exception;
 
@@ -23,7 +24,7 @@ class SubjectManipulatorException extends \RuntimeException implements WorkflowE
      *
      * @return static
      */
-    public static function subjectConfigIsAlreadySet($subjectClass)
+    public static function subjectConfigIsAlreadySet(string $subjectClass): self
     {
         return new static(sprintf('Subject manipulator config is already set for "%s"', $subjectClass));
     }
