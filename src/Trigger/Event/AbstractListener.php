@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -73,8 +74,8 @@ abstract class AbstractListener
         ExpressionLanguage $subjectRetrieverLanguage,
         SubjectManipulator $subjectManipulator,
         Registry $workflowRegistry,
-        LoggerInterface $logger)
-    {
+        LoggerInterface $logger
+    ) {
         $this->subjectRetrieverLanguage = $subjectRetrieverLanguage;
         $this->subjectManipulator = $subjectManipulator;
         $this->workflowRegistry   = $workflowRegistry;
@@ -89,10 +90,10 @@ abstract class AbstractListener
      * @param string $subjectRetrievingExpression expression used to retrieve subject from event
      */
     protected function configureSubjectRetrievingForEvent(
-        $eventName,
-        $workflowName,
-        $subjectRetrievingExpression)
-    {
+        string $eventName,
+        string $workflowName,
+        string $subjectRetrievingExpression
+    ): void {
         if (!isset($this->supportedEventsConfig[$eventName])) {
             $this->supportedEventsConfig[$eventName] = [];
         }
@@ -108,7 +109,7 @@ abstract class AbstractListener
      * @param Event  $event     event
      * @param string $eventName event name
      */
-    final public function dispatchEvent(Event $event, $eventName)
+    final public function dispatchEvent(Event $event, string $eventName): void
     {
         if (!array_key_exists($eventName, $this->supportedEventsConfig)) {
             throw new UnsupportedTriggerEventException(sprintf("Cannot find registered trigger event by name '%s'", $eventName));
@@ -140,7 +141,7 @@ abstract class AbstractListener
      *
      * @return void
      */
-    abstract protected function handleEvent($eventName, Event $event, $eventConfigForWorkflow, WorkflowContext $workflowContext);
+    abstract protected function handleEvent(string $eventName, Event $event, array $eventConfigForWorkflow, WorkflowContext $workflowContext): void;
 
     /**
      * Allows to execute any listener callback with control of internal errors and exceptions handling.
@@ -155,8 +156,12 @@ abstract class AbstractListener
      *
      * @throws Exception|Throwable in case of failure
      */
-    protected function execute(\Closure $closure, $eventName, WorkflowContext $workflowContext, $activity = 'react')
-    {
+    protected function execute(
+        \Closure $closure,
+        string $eventName,
+        WorkflowContext $workflowContext,
+        string $activity = 'react'
+    ): void {
         try {
             $closure();
         } catch (Exception $e) {
@@ -184,32 +189,24 @@ abstract class AbstractListener
      *
      * @return object|null
      */
-    private function retrieveSubjectFromEvent(Event $event, $eventName, $workflowName, $subjectRetrievingExpression)
+    private function retrieveSubjectFromEvent(Event $event, string $eventName, string $workflowName, string $subjectRetrievingExpression)
     {
         try {
-            $error = false;
-
             /** @var object|mixed $subject */
             $subject = $this->subjectRetrieverLanguage->evaluate($subjectRetrievingExpression, ['event' => $event]);
 
-            if (!is_object($subject)) {
+            if (!\is_object($subject)) {
                 $error = sprintf(
                     "Subject retrieving from '%s' event by expression '%s' ended with empty or non-object result",
                     $eventName,
                     $subjectRetrievingExpression
                 );
-            } else {
-                $this->logger->debug(sprintf('Retrieved subject from "%s" event', $eventName), ['workflow' => $workflowName]);
-
-                return $subject;
+                $this->logger->error($error, ['workflow' => $workflowName]);
             }
-        } catch (Exception $e) {
-            $error = sprintf(
-                "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Exception: '%s'. Please check retrieving expression",
-                $eventName,
-                $subjectRetrievingExpression,
-                $e->getMessage()
-            );
+
+            $this->logger->debug(sprintf('Retrieved subject from "%s" event', $eventName), ['workflow' => $workflowName]);
+
+            return $subject;
         } catch (Throwable $e) {
             $error = sprintf(
                 "Cannot retrieve subject from event '%s' by evaluating expression '%s'. Error: '%s'. Please check retrieving expression",
@@ -217,10 +214,10 @@ abstract class AbstractListener
                 $subjectRetrievingExpression,
                 $e->getMessage()
             );
-        } finally {
-            if ($error) {
-                $this->logger->error($error, ['workflow' => $workflowName]);
-            }
+
+            $this->logger->error($error, ['workflow' => $workflowName]);
+
+            return null;
         }
     }
 
@@ -232,7 +229,7 @@ abstract class AbstractListener
      *
      * @return WorkflowContext
      */
-    private function getWorkflowContext($subject, $workflowName)
+    private function getWorkflowContext($subject, string $workflowName): WorkflowContext
     {
         $workflowContext = new WorkflowContext(
             $this->workflowRegistry->get($subject, $workflowName),

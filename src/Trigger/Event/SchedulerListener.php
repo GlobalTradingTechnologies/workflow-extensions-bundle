@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -60,12 +61,12 @@ class SchedulerListener extends AbstractActionListener
      * @param string $expression expression to be executed by event
      */
     public function registerEvent(
-        $eventName,
-        $workflowName,
-        $subjectRetrievingExpression,
+        string $eventName,
+        string $workflowName,
+        string $subjectRetrievingExpression,
         array $scheduledActions = [])
     {
-        parent::configureSubjectRetrievingForEvent($eventName, $workflowName, $subjectRetrievingExpression);
+        $this->configureSubjectRetrievingForEvent($eventName, $workflowName, $subjectRetrievingExpression);
         $this->supportedEventsConfig[$eventName][$workflowName]['scheduled_actions'] = $scheduledActions;
     }
 
@@ -73,7 +74,7 @@ class SchedulerListener extends AbstractActionListener
     /**
      * {@inheritdoc}
      */
-    protected function handleEvent($eventName, Event $event, $eventConfigForWorkflow, WorkflowContext $workflowContext)
+    protected function handleEvent(string $eventName, Event $event, array $eventConfigForWorkflow, WorkflowContext $workflowContext): void
     {
         $actions = $this->supportedEventsConfig[$eventName][$workflowContext->getWorkflow()->getName()]['scheduled_actions'];
         /** @var ScheduledAction[] $actions */

@@ -9,6 +9,7 @@
  *
  * Date: 20.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action\ValueObject;
 
@@ -39,7 +40,7 @@ class Action
      * @param string $name      action name
      * @param array  $arguments action arguments
      */
-    public function __construct($name, array $arguments = [])
+    public function __construct(string $name, array $arguments = [])
     {
         $this->name      = $name;
         $this->arguments = $arguments;
@@ -50,7 +51,7 @@ class Action
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -60,7 +61,7 @@ class Action
      *
      * @return array
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         return $this->arguments;
     }

@@ -7,6 +7,7 @@
  *
  * Author: Alex Medvedev
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional\Kernel;
 
@@ -56,8 +57,13 @@ class BaseTestKernel extends Kernel implements TestKernelInterface
      *
      * {@inheritdoc}
      */
-    public function setTestKernelConfiguration($appName, $testCase, $configDir, $rootConfig, $rootDir = false)
-    {
+    public function setTestKernelConfiguration(
+        string $appName,
+        string $testCase,
+        string $configDir,
+        string $rootConfig,
+        string $rootDir = null
+    ): void {
         if (!$rootDir) {
             $rootDir = $configDir;
         }
@@ -92,10 +98,8 @@ class BaseTestKernel extends Kernel implements TestKernelInterface
      */
     protected function setRootDir($rootDir)
     {
-        if (!is_dir($rootDir)) {
-            if (false === @mkdir($rootDir, 0777, true)) {
-                throw new \RuntimeException(sprintf('Unable to create test kernel root directory %s ', $rootDir));
-            }
+        if (!is_dir($rootDir) && !mkdir($rootDir, 0777, true) && !is_dir($rootDir)) {
+            throw new \RuntimeException(sprintf('Unable to create test kernel root directory %s ', $rootDir));
         }
         $this->rootDir = realpath($rootDir);
     }
@@ -159,7 +163,7 @@ class BaseTestKernel extends Kernel implements TestKernelInterface
     /**
      * {@inheritdoc}
      */
-    public function getTempAppDir()
+    public function getTempAppDir(): string
     {
         return sys_get_temp_dir().'/'.$this->rawName;
     }
@@ -193,7 +197,7 @@ class BaseTestKernel extends Kernel implements TestKernelInterface
      */
     public function unserialize($str)
     {
-        list($env, $debug, $appName, $testCase, $configDir, $rootConfig, $rootDir) = unserialize($str);
+        [$env, $debug, $appName, $testCase, $configDir, $rootConfig, $rootDir] = unserialize($str, ['allow_classes' => false]);
         $this->__construct($env, $debug);
         $this->setTestKernelConfiguration($appName, $testCase, $configDir, $rootConfig, $rootDir);
     }

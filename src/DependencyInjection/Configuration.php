@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 17.07.15
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection;
 
@@ -18,6 +19,7 @@ use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
+use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -35,7 +37,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
+        $treeBuilder = new TreeBuilder('workflow_extensions');
         $rootNode    = $treeBuilder->root('workflow_extensions');
 
         $rootNode
@@ -44,6 +46,7 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addWorkflowsSection())
                 ->append($this->addSubjectManipulatorSection())
                 ->append($this->addSchedulerSection())
+                ->append($this->addContextSection())
             ->end()
         ;
 
@@ -55,10 +58,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addActionsSection()
+    private function addActionsSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('actions');
+        $node = new ArrayNodeDefinition('actions');
 
         $node
             ->useAttributeAsKey('name')
@@ -72,7 +74,7 @@ class Configuration implements ConfigurationInterface
                         ->defaultValue(ActionReferenceInterface::TYPE_REGULAR)
                         ->beforeNormalization()
                             ->ifString()
-                            ->then(function($v) {
+                            ->then(static function($v) {
                                 return constant(ActionReferenceInterface::class."::TYPE_".strtoupper($v));
                             })
                         ->end()
@@ -94,7 +96,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->validate()
                 ->always()
-                ->then(function ($v) {
+                ->then(static function ($v) {
                     foreach ($v as $actionName => $actionConfig) {
                         if (!preg_match('/^[a-z0-9_]+$/i', $actionName)) {
                             throw new InvalidConfigurationException(
@@ -133,9 +135,9 @@ class Configuration implements ConfigurationInterface
                                 );
                             }
                         }
-
-                        return $v;
                     }
+
+                    return $v;
                 })
             ->end()
         ;
@@ -148,10 +150,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addWorkflowsSection()
+    private function addWorkflowsSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('workflows');
+        $node = new ArrayNodeDefinition('workflows');
 
         $node
             ->fixXmlConfig('workflow')
@@ -174,10 +175,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addTriggersSection()
+    private function addTriggersSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('triggers');
+        $node = new ArrayNodeDefinition('triggers');
 
         $node
             ->fixXmlConfig('trigger')
@@ -191,7 +191,7 @@ class Configuration implements ConfigurationInterface
                                 ->defaultValue([])
                                 ->beforeNormalization()
                                     ->ifString()
-                                    ->then(function ($v) { return array($v); })
+                                    ->then(static function ($v) { return [$v]; })
                                 ->end()
                                 ->useAttributeAsKey('name')
                                 ->prototype('array')
@@ -201,16 +201,16 @@ class Configuration implements ConfigurationInterface
                                         ->end()
                                         ->beforeNormalization()
                                             ->ifString()
-                                            ->then(function ($v) {
+                                            ->then(static function ($v) {
                                                 return ['arguments' => [$v]];
                                             })
                                         ->end()
                                         ->beforeNormalization()
-                                            ->ifTrue(function ($v) {
+                                            ->ifTrue(static function ($v) {
                                                 // place arguments under 'arguments' key in order to validate it in common way
-                                                return is_array($v) && !(count($v) === 1 && array_key_exists('arguments', $v));
+                                                return \is_array($v) && !(\count($v) === 1 && \array_key_exists('arguments', $v));
                                             })
-                                            ->then(function ($v) {
+                                            ->then(static function ($v) {
                                                 return ['arguments' => $v];
                                             })
                                         ->end()
@@ -261,11 +261,10 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function buildActionArgumentsNode(NodeDefinition $targetArgumentsNode = null)
+    private function buildActionArgumentsNode(NodeDefinition $targetArgumentsNode = null): ArrayNodeDefinition
     {
         if (!$targetArgumentsNode) {
-            $builder = new TreeBuilder();
-            $targetArgumentsNode = $builder->root('arguments');
+            $targetArgumentsNode = new ArrayNodeDefinition('arguments');
         }
 
         $targetArgumentsNode
@@ -278,7 +277,7 @@ class Configuration implements ConfigurationInterface
                         ->defaultValue(ActionArgumentTypes::TYPE_SCALAR)
                         ->beforeNormalization()
                             ->ifString()
-                            ->then(function($v) {
+                            ->then(static function($v) {
                                 return constant(ActionArgumentTypes::class.'::TYPE_'.strtoupper($v));
                             })
                         ->end()
@@ -289,11 +288,11 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->beforeNormalization()
-                    ->ifTrue(function ($v) {
-                        return is_scalar($v) || (is_array($v) && !ArrayUtils::isArrayAssoc($v));
+                    ->ifTrue(static function ($v) {
+                        return \is_scalar($v) || (\is_array($v) && !ArrayUtils::isArrayAssoc($v));
                     })
-                    ->then(function ($v) {
-                        $type = is_scalar($v) ? ActionArgumentTypes::TYPE_SCALAR : ActionArgumentTypes::TYPE_ARRAY;
+                    ->then(static function ($v) {
+                        $type = \is_scalar($v) ? ActionArgumentTypes::TYPE_SCALAR : ActionArgumentTypes::TYPE_ARRAY;
                         return [
                             'type'  => $type,
                             'value' => $v
@@ -301,13 +300,12 @@ class Configuration implements ConfigurationInterface
                     })
                 ->end()
                 ->validate()
-                    ->ifTrue(function ($v) {
-                        return is_array($v) && $v['type'] === ActionArgumentTypes::TYPE_ARRAY;
+                    ->ifTrue(static function ($v) {
+                        return \is_array($v) && $v['type'] === ActionArgumentTypes::TYPE_ARRAY;
                     })
                     ->then(function ($v) {
                         // recursive processing of array values
-                        $treeBuilder = new TreeBuilder();
-                        $node = $treeBuilder->root('value');
+                        $node = new ArrayNodeDefinition('value');
                         $this->buildActionArgumentsNode($node);
                         $processor = new Processor();
                         $config = $processor->process($node->getNode(true), [$v['value']]);
@@ -318,7 +316,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
             ->validate()
-                ->ifTrue(function ($v) {
+                ->ifTrue(static function ($v): bool {
                     return ArrayUtils::isArrayAssoc($v, false);
                 })
                 // To provide cross-platform arguments handling we are not supporting here assoc arrays
@@ -336,7 +334,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return array
      */
-    private function getSupportedActionArgumentTypes()
+    private function getSupportedActionArgumentTypes(): array
     {
         static $supportedTypes = null;
 
@@ -353,10 +351,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return NodeDefinition
      */
-    private function addOffsetSection()
+    private function addOffsetSection(): NodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('offset', 'scalar');
+        $node = new ScalarNodeDefinition('offset');
 
         return $node
             ->isRequired()
@@ -365,7 +362,7 @@ class Configuration implements ConfigurationInterface
              'See https://en.wikipedia.org/wiki/ISO_8601#Durations for format description')
             ->validate()
                 ->always()
-                ->then(function ($v) {
+                ->then(static function ($v) {
                     try {
                         new DateInterval($v);
 
@@ -389,10 +386,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addGuardSection()
+    private function addGuardSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('guard');
+        $node = new ArrayNodeDefinition('guard');
 
         $node
             ->children()
@@ -405,7 +401,7 @@ class Configuration implements ConfigurationInterface
                     ->prototype('array')
                         ->beforeNormalization()
                             ->ifString()
-                            ->then(function ($v) { return ['expression' => $v]; })
+                            ->then(static function (string $v): array { return ['expression' => $v]; })
                         ->end()
                         ->children()
                             ->scalarNode('expression')
@@ -427,16 +423,15 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addSubjectManipulatorSection()
+    private function addSubjectManipulatorSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('subject_manipulator');
+        $node = new ArrayNodeDefinition('subject_manipulator');
 
         $node
             ->beforeNormalization()
                 ->always()
                 ->then(
-                    function ($v) {
+                    static function ($v) {
                         if (isset($v) && is_array($v)) {
                             foreach ($v as $key => $value) {
                                 unset($v[$key]);
@@ -485,10 +480,9 @@ class Configuration implements ConfigurationInterface
      *
      * @return ArrayNodeDefinition
      */
-    private function addSchedulerSection()
+    private function addSchedulerSection(): ArrayNodeDefinition
     {
-        $builder = new TreeBuilder();
-        $node = $builder->root('scheduler');
+        $node = new ArrayNodeDefinition('scheduler');
 
         $node
             ->children()
@@ -499,6 +493,43 @@ class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
         ;
+
+        return $node;
+    }
+
+    /**
+     * Defines services available inside of this bundle container
+     *
+     * @return ArrayNodeDefinition
+     */
+    private function addContextSection(): ArrayNodeDefinition
+    {
+        $node = new ArrayNodeDefinition('context');
+        $node
+            ->defaultValue([])
+            ->treatNullLike([])
+            ->scalarPrototype()
+            ->end()
+            ->info('Array of services available inside the container used by workflow engine')
+            ->example(['doctrine' => null, 'auth' => 'security.authorization_checker'])
+            ->beforeNormalization()
+                ->ifString()
+                ->then(static function (string $item): array {
+                    return [$item => $item];
+                })
+            ->end()
+            ->validate()
+                ->ifArray()
+                ->then(static function (array $config): array {
+                    foreach ($config as $k => $v) {
+                        if ($v === null) {
+                            $config[$k] = $k;
+                        }
+                    }
+
+                    return $config;
+                })
+            ->end();
 
         return $node;
     }

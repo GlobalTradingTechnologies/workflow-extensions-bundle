@@ -9,6 +9,7 @@
  *
  * Date: 22.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Utils;
 
@@ -27,7 +28,7 @@ class ArrayUtils
      *
      * @return bool
      */
-    public static function isArrayAssoc(array $array, $recursiveCheck = true)
+    public static function isArrayAssoc(array $array, bool $recursiveCheck = true): bool
     {
         foreach ($array as $key => $value) {
             if (is_string($key)) {

@@ -4,6 +4,7 @@ imports:
 framework:
     workflows:
         simple:
+            type: workflow
             marking_store:
                 type: multiple_state
                 arguments:

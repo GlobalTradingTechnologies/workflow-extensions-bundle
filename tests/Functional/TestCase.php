@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional;
 
@@ -21,7 +22,7 @@ class TestCase extends BaseWebTestCase
     /**
      * {@inheritdoc}
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         static::deleteTmpDirs();
     }
@@ -52,7 +53,7 @@ class TestCase extends BaseWebTestCase
      *
      * @return void
      */
-    protected static function deleteTmpDirs()
+    protected static function deleteTmpDirs(): void
     {
         if (static::$kernel) {
             $kernel = static::$kernel;

@@ -9,6 +9,7 @@
  *
  * Date: 31.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action;
 
@@ -49,7 +50,7 @@ class Registry implements IteratorAggregate
      * @param string                   $actionName action name
      * @param ActionReferenceInterface $action     action reference
      */
-    public function add($actionName, ActionReferenceInterface $action)
+    public function add($actionName, ActionReferenceInterface $action): void
     {
         if (array_key_exists($actionName, $this->actions)) {
             throw ActionException::actionAlreadyRegistered($actionName);
@@ -65,7 +66,7 @@ class Registry implements IteratorAggregate
      *
      * @return ActionReferenceInterface
      */
-    public function get($actionName)
+    public function get(string $actionName): ActionReferenceInterface
     {
         if (!array_key_exists($actionName, $this->actions)) {
             throw ActionException::actionNotFound($actionName);

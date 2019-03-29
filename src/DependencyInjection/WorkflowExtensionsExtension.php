@@ -8,17 +8,17 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 17.07.15
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection;
 
-use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\ServiceMethod;
-use Gtt\Bundle\WorkflowExtensionsBundle\Action\Reference\StaticMethod;
+use Gtt\Bundle\WorkflowExtensionsBundle\Guard\ExpressionGuard;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -40,6 +40,7 @@ class WorkflowExtensionsExtension extends Extension
         $loader->load('actions.xml');
 
         $this->registerSubjectManipulatorConfiguration($loader, $container, $config['subject_manipulator']);
+        $this->registerContextConfiguration($container, $config['context']);
 
         if (array_key_exists('workflows', $config)) {
             $this->registerWorkflowsConfiguration($loader, $container, $config['workflows']);
@@ -68,8 +69,8 @@ class WorkflowExtensionsExtension extends Extension
     private function registerSubjectManipulatorConfiguration(
         LoaderInterface $loader,
         ContainerBuilder $container,
-        array $subjectManipulatorConfig)
-    {
+        array $subjectManipulatorConfig
+    ): void {
         $loader->load('subject_manipulator.xml');
 
         $subjectManipulatorDefinition = $container->findDefinition('gtt.workflow.subject_manipulator');
@@ -101,8 +102,11 @@ class WorkflowExtensionsExtension extends Extension
      * @param ContainerBuilder $container       container
      * @param array            $workflowsConfig workflows config
      */
-    private function registerWorkflowsConfiguration(LoaderInterface $loader, ContainerBuilder $container, array $workflowsConfig)
-    {
+    private function registerWorkflowsConfiguration(
+        LoaderInterface $loader,
+        ContainerBuilder $container,
+        array $workflowsConfig
+    ): void {
         $triggerConfigLoaded = false;
         $guardConfigLoaded   = false;
         foreach ($workflowsConfig as $workflowName => $workflowConfig) {
@@ -130,8 +134,11 @@ class WorkflowExtensionsExtension extends Extension
      * @param string           $workflowName    workflow name
      * @param array            $triggersConfig  triggers config
      */
-    private function registerTriggerConfiguration(ContainerBuilder $container, $workflowName, array $triggersConfig)
-    {
+    private function registerTriggerConfiguration(
+        ContainerBuilder $container,
+        string $workflowName,
+        array $triggersConfig
+    ): void {
         $workflowsWithScheduling = [];
 
         $actionListenerDefinition     = $container->findDefinition('gtt.workflow.trigger.event.listener.action');
@@ -192,7 +199,7 @@ class WorkflowExtensionsExtension extends Extension
      * @param string     $eventName          event name
      * @param array      $arguments          arguments for event handling
      */
-    private function registerTriggerEventForListener(Definition $listenerDefinition, $eventName, array $arguments)
+    private function registerTriggerEventForListener(Definition $listenerDefinition, $eventName, array $arguments): void
     {
         $listenerDefinition->addMethodCall('registerEvent', $arguments);
         $listenerDefinition->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'dispatchEvent']);
@@ -205,7 +212,7 @@ class WorkflowExtensionsExtension extends Extension
      * @param ContainerBuilder $container       container
      * @param array            $schedulerConfig scheduler config
      */
-    private function registerSchedulerConfiguration(LoaderInterface $loader, ContainerBuilder $container, array $schedulerConfig)
+    private function registerSchedulerConfiguration(LoaderInterface $loader, ContainerBuilder $container, array $schedulerConfig): void
     {
         if (!$schedulerConfig) {
             throw new InvalidConfigurationException('"scheduler" section must be configured');
@@ -227,11 +234,11 @@ class WorkflowExtensionsExtension extends Extension
      * @param string           $workflowName workflow name
      * @param array            $guardConfig  workflow trigger config
      */
-    private function registerGuardConfiguration(LoaderInterface $loader, ContainerBuilder $container, $workflowName, $guardConfig)
+    private function registerGuardConfiguration(LoaderInterface $loader, ContainerBuilder $container, $workflowName, $guardConfig): void
     {
         $loader->load('guard.xml');
 
-        $guardDefinition = $container->findDefinition('gtt.workflow.guard');
+        $guardDefinition = $container->findDefinition(ExpressionGuard::class);
 
         if (isset($guardConfig['expression'])) {
             // register workflow-level guard
@@ -254,7 +261,7 @@ class WorkflowExtensionsExtension extends Extension
      * @param string     $workflowName    workflow name
      * @param string     $expression      guard expression
      */
-    private function registerGuardListener($guardDefinition, $eventName, $workflowName, $expression)
+    private function registerGuardListener($guardDefinition, $eventName, $workflowName, $expression): void
     {
         $guardDefinition->addMethodCall('registerGuardExpression', [$eventName, $workflowName, $expression]);
         $guardDefinition->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'guardTransition']);
@@ -266,24 +273,45 @@ class WorkflowExtensionsExtension extends Extension
      * @param array            $actionConfigs actions config
      * @param ContainerBuilder $container     container
      */
-    private function registerActionsConfiguration(array $actionConfigs, ContainerBuilder $container)
+    private function registerActionsConfiguration(array $actionConfigs, ContainerBuilder $container): void
     {
         $registryDefinition = $container->findDefinition('gtt.workflow.action.registry');
 
         foreach ($actionConfigs as $actionName => $actionConfig) {
-            // here we explicitly set parent class to decorated definition in order to fix inconsistent behavior for <= 2.7
-            // see https://github.com/symfony/symfony/issues/17353 and https://github.com/symfony/symfony/pull/15096
-            if (array_key_exists('service', $actionConfig)) {
-                $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.service_method.reference.prototype');
-                $actionReferenceDefinition->setClass(ServiceMethod::class);
-                $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['service'], $actionConfig['type']]);
-            } else {
-                $actionReferenceDefinition = new DefinitionDecorator('gtt.workflow.action.static_method.reference.prototype');
-                $actionReferenceDefinition->setClass(StaticMethod::class);
-                $actionReferenceDefinition->setArguments([$actionConfig['method'], $actionConfig['class'], $actionConfig['type']]);
-            }
+            $actionReferenceDefinition = new ChildDefinition('gtt.workflow.action.callable_method.reference.prototype');
+            $actionReferenceDefinition->setArguments(
+                [
+                    [
+                        isset($actionConfig['service'])
+                            ? new Reference($actionConfig['service'])
+                            : $actionConfig['class'],
+                        $actionConfig['method']
+                    ],
+                    $actionConfig['type']]
+            );
 
             $registryDefinition->addMethodCall('add', [$actionName, $actionReferenceDefinition]);
         }
+    }
+
+    /**
+     * Defines internal container with services
+     *
+     * @param ContainerBuilder $container The container
+     * @param array            $context   Context where keys are service aliases and values are service identifiers
+     *
+     * @return void
+     */
+    private function registerContextConfiguration(ContainerBuilder $container, array $context): void
+    {
+        $services = [];
+        $context = [
+            'gtt.workflow.action.executor' => 'gtt.workflow.action.executor'
+        ] + $context;
+        foreach ($context as $alias => $serviceId) {
+            $services[$alias] = new Reference($serviceId);
+        }
+
+        $container->getDefinition('gtt.workflow.context_container')->setArgument(0, $services);
     }
 }

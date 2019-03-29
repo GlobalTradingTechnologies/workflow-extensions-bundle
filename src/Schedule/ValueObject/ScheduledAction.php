@@ -9,6 +9,7 @@
  *
  * Date: 20.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Schedule\ValueObject;
 
@@ -36,7 +37,7 @@ class ScheduledAction extends Action
      */
     private $isReschedulable;
 
-    public function __construct($name, array $arguments, $offset, $isReschedulable = false)
+    public function __construct(string $name, array $arguments, string $offset, bool $isReschedulable = false)
     {
         parent::__construct($name, $arguments);
         $this->offset          = new DateInterval($offset);
@@ -48,7 +49,7 @@ class ScheduledAction extends Action
      *
      * @return DateInterval
      */
-    public function getOffset()
+    public function getOffset(): DateInterval
     {
         return $this->offset;
     }
@@ -56,7 +57,7 @@ class ScheduledAction extends Action
     /**
      * @return boolean
      */
-    public function isReschedulable()
+    public function isReschedulable(): bool
     {
         return $this->isReschedulable;
     }

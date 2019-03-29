@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -48,8 +49,8 @@ class ActionListener extends AbstractActionListener
         Registry $workflowRegistry,
         LoggerInterface $logger,
         ExpressionLanguage $actionLanguage,
-        ActionExecutor $actionExecutor)
-    {
+        ActionExecutor $actionExecutor
+    ) {
         parent::__construct($subjectRetrieverLanguage, $subjectManipulator, $workflowRegistry, $logger, $actionLanguage);
         $this->actionExecutor = $actionExecutor;
     }
@@ -60,11 +61,11 @@ class ActionListener extends AbstractActionListener
      * @param array $actions list of actions to try to apply by specified workflow
      */
     public function registerEvent(
-        $eventName,
-        $workflowName,
-        $subjectRetrievingExpression,
-        array $actions = [])
-    {
+        string $eventName,
+        string $workflowName,
+        string $subjectRetrievingExpression,
+        array $actions = []
+    ): void {
         $this->configureSubjectRetrievingForEvent($eventName, $workflowName, $subjectRetrievingExpression);
         $this->supportedEventsConfig[$eventName][$workflowName]['actions'] = $actions;
     }
@@ -72,8 +73,12 @@ class ActionListener extends AbstractActionListener
     /**
      * {@inheritdoc}
      */
-    protected function handleEvent($eventName, Event $event, $eventConfigForWorkflow, WorkflowContext $workflowContext)
-    {
+    protected function handleEvent(
+        string $eventName,
+        Event $event,
+        array $eventConfigForWorkflow,
+        WorkflowContext $workflowContext
+    ): void {
         $actions = $this->supportedEventsConfig[$eventName][$workflowContext->getWorkflow()->getName()]['actions'];
         /** @var Action[] $actions */
         $actions = $this->prepareActions($actions, $event, $workflowContext);

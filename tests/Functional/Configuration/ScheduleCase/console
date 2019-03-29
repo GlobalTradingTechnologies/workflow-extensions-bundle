@@ -1,4 +1,6 @@
+#!/usr/bin/env php
 <?php
+declare(strict_types=1);
 
 use Gtt\Bundle\WorkflowExtensionsBundle\Functional\ScheduleCaseTest;
 use Symfony\Component\Console\Input\ArgvInput;

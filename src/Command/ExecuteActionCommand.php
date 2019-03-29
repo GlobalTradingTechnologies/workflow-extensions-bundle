@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 28.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Command;
 
@@ -108,7 +109,6 @@ class ExecuteActionCommand extends Command
                     'FQCN of the workflow subject'
                 )
             ))
-            ->setName(static::$defaultName)
             ->setDescription('Execute action command')
             ->setHelp(<<<EOT
 This <info>%command.name%</info> executes action by name with parameters specified

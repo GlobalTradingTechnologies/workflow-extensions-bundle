@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date   09.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Schedule;
 
@@ -18,12 +19,14 @@ use Gtt\Bundle\WorkflowExtensionsBundle\Entity\ScheduledJob;
 use Gtt\Bundle\WorkflowExtensionsBundle\Schedule\ValueObject\ScheduledAction;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
 use JMS\JobQueueBundle\Entity\Job;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Workflow\Workflow;
 
-class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
+class ActionSchedulerTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         Carbon::setTestNow();
@@ -32,10 +35,10 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider scheduledActionProvider
      */
-    public function testSchedulerSchedulesCorrectJob(ScheduledAction $action, $alreadyScheduled)
+    public function testSchedulerSchedulesCorrectJob(ScheduledAction $action, bool $alreadyScheduled): void
     {
         /** @var WorkflowContext $workflowContext */
-        list($workflowContext, $repository, $em) = $this->setupSchedulerContext();
+        [$workflowContext, $repository, $em] = $this->setupSchedulerContext();
 
         Carbon::setTestNow(Carbon::now());
         $now             = Carbon::now();
@@ -53,7 +56,7 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
                 $expectedActionJob->setExecuteAfter($executeJobAfter);
 
                 $repository->expects(self::once())->method('findScheduledJobToReschedule')->willReturn($scheduledJob);
-                $em->expects(self::once())->method('persist')->with(self::callback(function (Job $actual) use ($expectedActionJob) {
+                $em->expects(self::once())->method('persist')->with(self::callback(static function (Job $actual) use ($expectedActionJob) {
                     self::assertEquals($expectedActionJob->getExecuteAfter(), $actual->getExecuteAfter());
 
                     return true;
@@ -69,11 +72,11 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
             $this->configureEmToExpectNewJobCreation($em, $action, $workflowContext, $executeJobAfter);
         }
 
-        $scheduler = new ActionScheduler($em, $this->getMock(LoggerInterface::class));
+        $scheduler = new ActionScheduler($em, $this->getMockBuilder(LoggerInterface::class)->getMockForAbstractClass());
         $scheduler->scheduleAction($workflowContext, $action);
     }
 
-    public function scheduledActionProvider()
+    public function scheduledActionProvider(): array
     {
         return [
             [new ScheduledAction('a1', [], 'PT1S'), true],
@@ -83,7 +86,7 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function configureEmToExpectNewJobCreation(ObjectManager $em, ScheduledAction $action, WorkflowContext $workflowContext, \DateTime $executeJobAfter)
+    private function configureEmToExpectNewJobCreation(ObjectManager $em, ScheduledAction $action, WorkflowContext $workflowContext, \DateTime $executeJobAfter): void
     {
         $expectedActionJob = new Job(
             'workflow:action:execute',
@@ -98,7 +101,7 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
 
         $expectedActionJob->setExecuteAfter($executeJobAfter);
 
-        /** @var $em \PHPUnit_Framework_MockObject_MockObject|ObjectManager */
+        /** @var $em MockObject|ObjectManager */
         $em->expects(self::exactly(2))->method('persist')->withConsecutive(
             self::equalTo($expectedActionJob),
             self::equalTo(new ScheduledJob($expectedActionJob, $action->isReschedulable()))
@@ -108,7 +111,7 @@ class ActionSchedulerTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    private function setupSchedulerContext()
+    private function setupSchedulerContext(): array
     {
         $subject = new \StdClass();
         $subjectId = '1';

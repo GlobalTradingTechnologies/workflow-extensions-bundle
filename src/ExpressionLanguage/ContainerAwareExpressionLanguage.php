@@ -8,11 +8,12 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 19.07.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage;
 
 use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 

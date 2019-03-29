@@ -42,7 +42,7 @@
         <service id="gtt.workflow.subject_retriever.expression_language"
                  class="Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage\ContainerAwareExpressionLanguage"
                  public="false">
-            <argument type="service" id="service_container" />
+            <argument type="service" id="gtt.workflow.context_container" />
         </service>
     </services>
 </container>

@@ -9,6 +9,7 @@
  *
  * Date: 01.09.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Action\ExpressionLanguage;
 
@@ -16,7 +17,7 @@ use Gtt\Bundle\WorkflowExtensionsBundle\Action\Executor;
 use Gtt\Bundle\WorkflowExtensionsBundle\Action\Registry;
 use Gtt\Bundle\WorkflowExtensionsBundle\ExpressionLanguage\ContainerAwareExpressionLanguage;
 use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Expression language allows to use actions inside expressions
@@ -33,17 +34,17 @@ class ActionExpressionLanguage extends ContainerAwareExpressionLanguage
         Executor $actionExecutor,
         ContainerInterface $container,
         CacheItemPoolInterface $cache = null,
-        array $providers = array())
-    {
+        array $providers = []
+    ) {
         parent::__construct($container, $cache, $providers);
 
         foreach ($actionRegistry as $actionName => $action) {
             $this->register(
                 $actionName,
-                function () use ($actionName, $actionExecutor)
+                static function () use ($actionName, $actionExecutor)
                 {
                     $rawArgs           = func_get_args();
-                    $compiledArgsArray = "array(". implode(", ", $rawArgs) . ")";
+                    $compiledArgsArray = var_export($rawArgs, true);
 
                     return sprintf(
                         '$container->get("gtt.workflow.action.executor")->execute($workflowContext, "%s", %s)',
@@ -51,7 +52,7 @@ class ActionExpressionLanguage extends ContainerAwareExpressionLanguage
                         $compiledArgsArray
                     );
                 },
-                function () use ($actionName, $actionExecutor)
+                static function () use ($actionName, $actionExecutor)
                 {
                     $args      = func_get_args();
                     $variables = array_shift($args);

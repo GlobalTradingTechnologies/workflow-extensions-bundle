@@ -8,6 +8,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 29.06.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -44,8 +45,8 @@ class ExpressionListener extends AbstractActionListener
         SubjectManipulator $subjectManipulator,
         Registry $workflowRegistry,
         LoggerInterface $logger,
-        ExpressionLanguage $actionLanguage)
-    {
+        ExpressionLanguage $actionLanguage
+    ) {
         parent::__construct($subjectRetrieverLanguage, $subjectManipulator, $workflowRegistry, $logger, $actionLanguage);
         $this->actionLanguage = $actionLanguage;
     }
@@ -56,19 +57,19 @@ class ExpressionListener extends AbstractActionListener
      * @param string $expression expression to be executed by event
      */
     public function registerEvent(
-        $eventName,
-        $workflowName,
-        $subjectRetrievingExpression,
-        $expression)
+        string $eventName,
+        string $workflowName,
+        string $subjectRetrievingExpression,
+        string $expression)
     {
-        parent::configureSubjectRetrievingForEvent($eventName, $workflowName, $subjectRetrievingExpression);
+        $this->configureSubjectRetrievingForEvent($eventName, $workflowName, $subjectRetrievingExpression);
         $this->supportedEventsConfig[$eventName][$workflowName]['expression'] = $expression;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function handleEvent($eventName, Event $event, $eventConfigForWorkflow, WorkflowContext $workflowContext)
+    protected function handleEvent(string $eventName, Event $event, array $eventConfigForWorkflow, WorkflowContext $workflowContext): void
     {
         $expression = $this->supportedEventsConfig[$eventName][$workflowContext->getWorkflow()->getName()]['expression'];
 

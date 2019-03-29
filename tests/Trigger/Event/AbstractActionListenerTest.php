@@ -9,6 +9,7 @@
  *
  * Date: 17.10.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Trigger\Event;
 
@@ -16,34 +17,35 @@ use Gtt\Bundle\WorkflowExtensionsBundle\DependencyInjection\Enum\ActionArgumentT
 use Gtt\Bundle\WorkflowExtensionsBundle\Exception\ActionException;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowContext;
 use Gtt\Bundle\WorkflowExtensionsBundle\WorkflowSubject\SubjectManipulator;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Workflow\Registry;
 
-class AbstractActionListenerTest extends \PHPUnit_Framework_TestCase
+class AbstractActionListenerTest extends TestCase
 {
     /**
      * @dataProvider argumentsProvider
      */
-    public function testResolveActionArguments(array $inputArgArray, $expectedResult, ExpressionLanguage $actionLanguage = null)
+    public function testResolveActionArguments(array $inputArgArray, $expectedResult, ExpressionLanguage $actionLanguage = null): void
     {
         if ($actionLanguage) {
             /** @var AbstractActionListener $listener */
-            $listener = self::getMockForAbstractClass(
+            $listener = $this->getMockForAbstractClass(
                 AbstractActionListener::class,
                 [
-                    $this->getMock(ExpressionLanguage::class),
+                    $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock(),
                     $this->getMockBuilder(SubjectManipulator::class)->disableOriginalConstructor()->getMock(),
-                    $this->getMock(Registry::class),
-                    $this->getMock(LoggerInterface::class),
+                    $this->getMockBuilder(Registry::class)->disableOriginalConstructor()->getMock(),
+                    $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock(),
                     $actionLanguage
                 ]
             );
         } else {
             /** @var AbstractActionListener $listener */
-            $listener = self::getMockForAbstractClass(AbstractActionListener::class, [], "", false);
+            $listener = $this->getMockForAbstractClass(AbstractActionListener::class, [], "", false);
         }
 
         $resolveActionArgumentsMethodRef = new ReflectionMethod($listener, 'resolveActionArguments');
@@ -56,14 +58,14 @@ class AbstractActionListenerTest extends \PHPUnit_Framework_TestCase
             $this->getMockBuilder(WorkflowContext::class)->disableOriginalConstructor()->getMock()
         ];
         if ($expectedResult instanceof \Exception) {
-            self::setExpectedException(get_class($expectedResult));
+            $this->expectException(get_class($expectedResult));
             $resolveActionArgumentsMethodRef->invokeArgs($listener, $invokeArgs);
         } else {
             self::assertEquals($expectedResult, $resolveActionArgumentsMethodRef->invokeArgs($listener, $invokeArgs));
         }
     }
 
-    public function argumentsProvider()
+    public function argumentsProvider(): array
     {
         $data = [];
 
@@ -72,7 +74,7 @@ class AbstractActionListenerTest extends \PHPUnit_Framework_TestCase
         $validExpression2 = 'e2';
         $expressionResult1 = 'r1';
         $expressionResult2 = 'r2';
-        $actionLanguage = $this->getMock(ExpressionLanguage::class);
+        $actionLanguage = $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock();
         $actionLanguage->expects(self::exactly(2))->method('evaluate')->will(
             self::onConsecutiveCalls($expressionResult1, $expressionResult2)
         );
@@ -127,7 +129,7 @@ class AbstractActionListenerTest extends \PHPUnit_Framework_TestCase
         ];
 
         // invalid expression 1
-        $actionLanguage = $this->getMock(ExpressionLanguage::class);
+        $actionLanguage = $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock();
         $actionLanguage->expects(self::once())->method('evaluate')->willReturn(new \StdClass());
         $data[] = [
             [
@@ -141,7 +143,7 @@ class AbstractActionListenerTest extends \PHPUnit_Framework_TestCase
         ];
 
         // invalid expression 2
-        $actionLanguage = $this->getMock(ExpressionLanguage::class);
+        $actionLanguage = $this->getMockBuilder(ExpressionLanguage::class)->disableOriginalConstructor()->getMock();
         $actionLanguage->expects(self::once())->method('evaluate')->willReturn(["test" => 1]);
         $data[] = [
             [

@@ -8,8 +8,10 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 02.08.16
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Exception;
+
 use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
 
 /**
@@ -17,7 +19,7 @@ use Gtt\Bundle\WorkflowExtensionsBundle\Utils\ArrayUtils;
  */
 class ActionException extends RuntimeException
 {
-    public static function containerUnavailableForServiceMethodReference($serviceId)
+    public static function containerUnavailableForServiceMethodReference(string $serviceId): self
     {
         return new static(
             sprintf(
@@ -27,17 +29,17 @@ class ActionException extends RuntimeException
         );
     }
 
-    public static function actionAlreadyRegistered($actionName)
+    public static function actionAlreadyRegistered(string $actionName): self
     {
         return new static(sprintf('Action reference with name "%s" is already registered', $actionName));
     }
 
-    public static function actionNotFound($actionName)
+    public static function actionNotFound(string $actionName): self
     {
         return new static(sprintf('Action reference with name "%s" is not found in action registry', $actionName));
     }
 
-    public static function actionExpressionArgumentIsMalformed($actionName, $expression, $expressionResult)
+    public static function actionExpressionArgumentIsMalformed(string $actionName, string $expression, $expressionResult): self
     {
         if (is_array($expressionResult) && ArrayUtils::isArrayAssoc($expressionResult)) {
             // assoc array

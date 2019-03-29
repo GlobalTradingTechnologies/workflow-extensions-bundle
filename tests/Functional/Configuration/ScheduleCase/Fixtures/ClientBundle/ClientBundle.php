@@ -9,6 +9,7 @@
  * (c) fduch <alex.medwedew@gmail.com>
  * @date 17.07.15
  */
+declare(strict_types=1);
 
 namespace Gtt\Bundle\WorkflowExtensionsBundle\Functional\Configuration\ScheduleCase\Fixtures\ClientBundle;
 
